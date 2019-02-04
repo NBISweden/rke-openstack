@@ -10,6 +10,8 @@ resource "openstack_compute_instance_v2" "instance" {
     name = "${var.network_name}"
   }
 
+  config_drive = "true"
+
   security_groups = ["${var.secgroup_name}"]
 
   # Try to drain and delete node before downscaling
