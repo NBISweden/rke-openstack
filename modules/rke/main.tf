@@ -83,6 +83,7 @@ resource "kubernetes_storage_class" "cinder" {
     name = "cinder"
   }
   storage_provisioner = "kubernetes.io/cinder"
+  reclaim_policy = "Delete"
   parameters {
     availability = "nova"
   }
