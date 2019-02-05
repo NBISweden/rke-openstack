@@ -88,3 +88,75 @@ resource "kubernetes_storage_class" "cinder" {
     availability = "nova"
   }
 }
+
+resource "kubernetes_service_account" "tiller" {
+  metadata {
+    name      = "terraform-tiller"
+    namespace = "kube-system"
+  }
+
+  automount_service_account_token = true
+}
+
+resource "kubernetes_cluster_role_binding" "tiller" {
+  depends_on = ["kubernetes_service_account.tiller"]
+  metadata {
+    name = "terraform-tiller"
+  }
+
+  role_ref {
+    kind      = "ClusterRole"
+    name      = "cluster-admin"
+    api_group = "rbac.authorization.k8s.io"
+  }
+
+  subject {
+    kind = "ServiceAccount"
+    name = "terraform-tiller"
+
+    api_group = ""
+    namespace = "kube-system"
+  }
+}
+
+provider helm "helm_provider" {
+  version = "0.7.0"
+
+  kubernetes {
+    host                   = "${local.api_access}"
+    client_certificate     = "${rke_cluster.cluster.client_cert}"
+    client_key             = "${rke_cluster.cluster.client_key}"
+    cluster_ca_certificate = "${rke_cluster.cluster.ca_crt}"
+  }
+
+  service_account = "${kubernetes_service_account.tiller.metadata.0.name}"
+  namespace       = "${kubernetes_service_account.tiller.metadata.0.namespace}"
+  tiller_image    = "gcr.io/kubernetes-helm/tiller:v2.12.1"
+}
+
+resource helm_repository "rancher" {
+    name = "rancher-stable"
+    url  = "https://releases.rancher.com/server-charts/stable"
+}
+
+resource helm_release "cert-manager" {
+    name       = "cert-manager"
+    repository = "stable"
+    chart      = "cert-manager"
+    namespace  = "kube-system"
+    version    = "v0.5.2"
+}
+
+resource helm_release "rancher" {
+    depends_on = ["helm_release.cert-manager"]
+    name       = "my-rancher"
+    repository = "${helm_repository.rancher.metadata.0.name}"
+    chart      = "rancher"
+    namespace  = "rancher"
+    wait       = false
+
+    set {
+       name  = "hostname"
+       value = "sega.test"
+   }
+}
