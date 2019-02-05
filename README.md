@@ -1,6 +1,6 @@
 # RKE deployments using Terraform
 
-This plugin can install vanilla Kubernetes in a cluster of machines created with Terraform on Openstack. It also provides automatic provisioning of `Cinder volumes` to Kubernetes pods and `nginx` as LoadBalancer.
+This plugin can install vanilla Kubernetes in a cluster of machines created with Terraform on Openstack. It also provides automatic provisioning of `Cinder volumes` to Kubernetes pods, `nginx` as LoadBalancer and the `Rancher Server UI` to manage the cluster.
 
 ## Index
 - [Prerequisites](#prerequisites)
@@ -14,6 +14,7 @@ On your machine you need to:
 
 - Install [Terraform](https://www.terraform.io/)
 - Install [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+- Install [Helm](https://github.com/helm/helm/releases)
 - Add the [terraform-provider-rke](https://github.com/yamamoto-febc/terraform-provider-rke/releases) to `~/.terraform.d/plugins/`
 - Set up the environment by [sourcing the OpenStack RC](https://docs.openstack.org/zh_CN/user-guide/common/cli-set-environment-variables-using-openstack-rc.html) file for your project
 
