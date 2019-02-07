@@ -78,6 +78,7 @@ module "edge" {
   ssh_user           = "${var.ssh_user}"
   ssh_key            = "${var.ssh_key}"
   os_ssh_keypair     = "${openstack_compute_keypair_v2.keypair.name}"
+  ssh_bastion_host   = "${element(module.edge.public_ip_list,0)}"
   docker_version     = "${var.docker_version}"
   assign_floating_ip = "${var.edge_assign_floating_ip}"
   role               = ["worker"]
