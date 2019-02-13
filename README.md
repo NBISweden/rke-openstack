@@ -1,33 +1,41 @@
-# RKE deployments using Terraform
+# REGA: RKE deployments using Terraform
 
-This plugin can install vanilla Kubernetes in a cluster of machines created with Terraform on Openstack. It also provides automatic provisioning of `Cinder volumes` to Kubernetes pods, `nginx` as LoadBalancer and the possibility to setup the `Rancher Server UI` to manage the cluster.
-
-## Index
-- [Prerequisites](#prerequisites)
-- [Settings](#settings)
-- [Deployment](#deployment)
-- [Scale](#scale)
-- [Release resources](#release)
-- [Rancher Server](#server)
+This CLI allows you to install vanilla Kubernetes in a cluster of machines created with Terraform on Openstack. It also provides automatic provisioning of `Cinder volumes` to Kubernetes pods, `nginx` as LoadBalancer and the possibility to setup the `Rancher Server UI` to manage the cluster.
 
 ## Prerequisites
-On your machine you need to:
+On your machine you need the following requirements:
 
-- Install [Terraform](https://www.terraform.io/)
-- Install [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
-- Install [Helm](https://github.com/helm/helm/releases)
-- Add the [terraform-provider-rke](https://github.com/yamamoto-febc/terraform-provider-rke/releases) to `~/.terraform.d/plugins/`
+- [Docker](https://www.docker.com/)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+- [Helm](https://github.com/helm/helm/releases)
+- [Python 3.5+](https://www.python.org/downloads/)
 - Set up the environment by [sourcing the OpenStack RC](https://docs.openstack.org/zh_CN/user-guide/common/cli-set-environment-variables-using-openstack-rc.html) file for your project
 
 
-## Settings
+## Installing the REGA client
 
-Create a file called `terraform.tfvars` where you specify the values for the following settings:
+In order to install the CLI please run:
+```
+python setup.py install
+```
+You can now explore the different functions provided by the CLI by executing:
+```
+rega --help
+```
+
+## Deployment
+
+To create a new deployment project you can run:
+```
+rega init <my-project>
+cd <my-project>
+```
+Once in your project folder, modify the file called `terraform.tfvars` where you specify the values for the following settings:
 
 ```yml
 cluster_prefix="my-test"
-ssh_key_pub="./ssh_key.pub"
-ssh_key="./ssh_key"
+ssh_key_pub="ssh_key.pub"
+ssh_key="ssh_key"
 external_network_id=""
 floating_ip_pool=""
 image_name="Ubuntu 16.04 LTS (Xenial Xerus) - latest"
@@ -46,44 +54,19 @@ os_tenant_name=""
 os_domain_name=""
 ```
 
-Create a ssh key pair in the project directory and add it to the agent:
-
-```
-ssh-add ssh_key
-```
-
-
-Then you can create a Terraform plan by using:
-
-```
-terraform init && terraform plan
-```
-
-## Deployment
-
-To deploy the infrastructure run:
-
-```
-terraform apply
-```
-
-Once the deployment is done, you can configure `kubectl` and check the nodes:
+Once the deployment is done, you can configure `kubectl` and explore the cluster:
 
 ```
 export KUBECONFIG="$PWD/kube_config_cluster.yml"
 kubectl get nodes
 ```
 
-## Scale
-
-To scale the cluster you can increase and decrease the number of workers in `config.tfvars` and run `terraform apply` again.
-
 ## Release resources
 
 You can release the resources by running:
 
 ```
-terraform destroy
+rega destroy
 ```
 
 ## Rancher Server
