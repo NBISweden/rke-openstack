@@ -54,6 +54,11 @@ os_tenant_name=""
 os_domain_name=""
 ```
 
+To fire up the infrastructure execute:
+```
+rega apply
+```
+
 Once the deployment is done, you can configure `kubectl` and explore the cluster:
 
 ```
