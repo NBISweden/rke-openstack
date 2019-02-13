@@ -116,15 +116,3 @@ resource "kubernetes_cluster_role_binding" "tiller" {
     namespace = "kube-system"
   }
 }
-
-resource null_resource "tiller" {
-  depends_on = ["kubernetes_cluster_role_binding.tiller"]
-
-  provisioner "local-exec" {
-    environment {
-      KUBECONFIG = "${path.root}/kube_config_cluster.yml"
-    }
-
-    command = "helm init --service-account terraform-tiller --wait"
-  }
-}
