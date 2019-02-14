@@ -42,6 +42,7 @@ resource rke_cluster "cluster" {
   }
 
   ignore_docker_version = "${var.ignore_docker_version}"
+  kubernetes_version = "${var.kubernetes_version}"
 
   # Workaround: make sure resources are created and deleted in the right order
   provisioner "local-exec" {
