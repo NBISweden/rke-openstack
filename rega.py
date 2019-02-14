@@ -22,6 +22,7 @@ default_image = 'novella/rega:latest'
 @click.group()
 def main():
     """REGA is a tool for provisioning RKE clusters."""
+
 @main.command('init')
 @click.argument('dir')
 @click.option('-I','--image', default=default_image, envvar='REGA_PROVISIONER_IMG')
@@ -37,18 +38,9 @@ def init(dir,image):
 def version(image):
     logging.info("""REGA provisioner version is {}""".format(image))
 
-@main.command('openstack')
-@click.argument('extra_args')
-@click.option('-I','--image', default=default_image, envvar='REGA_PROVISIONER_IMG')
-def openstack(extra_args,image):
-    #client.images.pull(image)
-    logging.info("""Command openstack executed and passed argument {}""".format(extra_args))
-    client = docker.from_env()
-    output = client.containers.run(image, 'openstack {}'.format(extra_args))
-    logging.info('OPENSTACK: {}'.format(output))
-
 @main.command('apply')
-@click.option('-I','--image', default=default_image, envvar='REGA_PROVISIONER_IMG')
+@click.option('-I','--image', default=default_image, envvar='REGA_PROVISIONER_IMG',\
+help='Applies the Terraform plan to spawn the desired resources')
 def apply(image):
     #client.images.pull(image)
     logging.info("""Command apply executed""")
@@ -66,7 +58,8 @@ def apply(image):
         print(line.decode())
 
 @main.command('destroy')
-@click.option('-I','--image', default=default_image, envvar='REGA_PROVISIONER_IMG')
+@click.option('-I','--image', default=default_image, envvar='REGA_PROVISIONER_IMG',\
+help='Releses all resources available in the Terraform state')
 def destroy(image):
     #client.images.pull(image)
     logging.info("""Command destroy executed""")
@@ -81,19 +74,34 @@ def destroy(image):
     for line in log_stream:
         print(line.decode())
 
-@main.command('state')
+@main.command('terraform')
 @click.argument('extra_args')
-@click.option('-I','--image', default=default_image, envvar='REGA_PROVISIONER_IMG')
-def state(extra_args,image):
+@click.option('-I','--image', default=default_image, envvar='REGA_PROVISIONER_IMG',\
+help='Executes the terraform command in the provisioner container with the provided args')
+def terraform(extra_args,image):
     #client.images.pull(image)
-    logging.info("""State command executed""")
+    logging.info("""Command terraform executed""")
     env = list(filter_vars(os.environ))
     check_environment()
     client = docker.from_env()
-    command_state = 'terraform state {}'.format(extra_args)
-    output_state = client.containers.run(image ,volumes=volume_mount,\
-    environment=env, working_dir=container_wd, command=command_state)
-    logging.info('STATE: {}'.format(output_state))
+    command_destroy = 'terraform {}'.format(extra_args)
+    container_destroy = client.containers.run(image, volumes=volume_mount,\
+    environment=env, working_dir=container_wd,\
+    command=command_destroy, detach=True)
+    log_stream = container_destroy.logs(stream=True,follow=True)
+    for line in log_stream:
+        print(line.decode())
+
+@main.command('openstack')
+@click.argument('extra_args')
+@click.option('-I','--image', default=default_image, envvar='REGA_PROVISIONER_IMG',\
+help='Executes the openstack command in the provisioner container with the provided args')
+def openstack(extra_args,image):
+    #client.images.pull(image)
+    logging.info("""Command openstack executed and passed argument {}""".format(extra_args))
+    client = docker.from_env()
+    output = client.containers.run(image, 'openstack {}'.format(extra_args))
+    logging.info('OPENSTACK: {}'.format(output))
 
 def create_deployment(dir):
     """copy relevant files to new folder"""
@@ -101,7 +109,7 @@ def create_deployment(dir):
         dir_util.mkpath(dir)
         subprocess.call('cp -r deployment-template/* ./{}/'.format(dir), shell=True)
     else:
-        sys.stderr.write("Error: deploymenttemplate folder not found. Are you in the right directory?\n")
+        sys.stderr.write("Error: deployment-template folder not found. Are you in the right directory?\n")
         sys.exit(1)
 
     if not os.path.isfile(dir + '/ssh_key.pub'):
