@@ -99,6 +99,7 @@ help='Executes the openstack command in the provisioner container with the provi
 def openstack(extra_args,image):
     #client.images.pull(image)
     logging.info("""Command openstack executed and passed argument {}""".format(extra_args))
+    env = list(filter_vars(os.environ))
     client = docker.from_env()
     output = client.containers.run(image, 'openstack {}'.format(extra_args))
     logging.info('OPENSTACK: {}'.format(output))
