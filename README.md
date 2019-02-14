@@ -76,9 +76,10 @@ rega destroy
 
 ## Rancher Server
 
-In order to manage the cluster from the Rancher UI, you can install `cert-manager` and the `Rancher server` using a Helm chart. First use `helm repo add` command to add the Helm chart repository that contains charts to install Rancher:
+In order to manage the cluster from the Rancher UI, you can install `cert-manager` and the `Rancher server` using a Helm chart. After initialising Helm, you need to add the Helm chart repository that contains charts to install Rancher:
 
 ```
+helm init --service-account terraform-tiller
 helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
 ```
 
