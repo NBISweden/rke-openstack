@@ -27,7 +27,7 @@ def main():
 @click.argument('dir')
 @click.option('-I','--image', default=default_image, envvar='REGA_PROVISIONER_IMG')
 def init(dir,image):
-    logging.info("""Command init executed and passed argument {}""".format(dir))
+    logging.info("""Initilaizing a new environment in {}""".format(dir))
     client = docker.from_env()
     client.images.pull(image)
     check_init_dir()
@@ -43,7 +43,7 @@ def version(image):
 help='Applies the Terraform plan to spawn the desired resources')
 def apply(image):
     #client.images.pull(image)
-    logging.info("""Command apply executed""")
+    logging.info("""Applying setup""")
     env = list(filter_vars(os.environ))
     check_environment()
     client = docker.from_env()
@@ -62,7 +62,7 @@ def apply(image):
 help='Releses all resources available in the Terraform state')
 def destroy(image):
     #client.images.pull(image)
-    logging.info("""Command destroy executed""")
+    logging.info("""Destroying the infrastructure""")
     env = list(filter_vars(os.environ))
     check_environment()
     client = docker.from_env()
@@ -80,7 +80,7 @@ def destroy(image):
 help='Executes the terraform command in the provisioner container with the provided args')
 def terraform(extra_args,image):
     #client.images.pull(image)
-    logging.info("""Command terraform executed""")
+    logging.info("""Running terraform with arguments: {}""".format(extra_args))
     env = list(filter_vars(os.environ))
     check_environment()
     client = docker.from_env()
@@ -98,7 +98,7 @@ def terraform(extra_args,image):
 help='Executes the openstack command in the provisioner container with the provided args')
 def openstack(extra_args,image):
     #client.images.pull(image)
-    logging.info("""Command openstack executed and passed argument {}""".format(extra_args))
+    logging.info("""Running openstack with arguments: {}""".format(extra_args))
     env = list(filter_vars(os.environ))
     client = docker.from_env()
     output = client.containers.run(image, 'openstack {}'.format(extra_args))
