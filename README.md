@@ -16,7 +16,7 @@ On your machine you need the following requirements:
 
 In order to install the CLI please run:
 ```
-python setup.py install
+make install
 ```
 You can now explore the different functions provided by the CLI by executing:
 ```
