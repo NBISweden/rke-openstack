@@ -15,8 +15,6 @@ from distutils import dir_util
 
 logging.basicConfig(level=logging.INFO)
 
-volume_mount = {os.getcwd(): {'bind': '/mnt/deployment/', 'mode': 'rw'}}
-container_wd = '/mnt/deployment/'
 default_image = 'novella/rega:latest'
 
 @click.group()
@@ -86,6 +84,8 @@ def openstack(extra_args,image):
 def run_in_container(commands, image, detach=True):
     client = docker.from_env()
     env    = list(filter_vars(os.environ))
+    volume_mount = {os.getcwd(): {'bind': '/mnt/deployment/', 'mode': 'rw'}}
+    container_wd = '/mnt/deployment/'
 
     assert type(commands) == type(list()), "First argument should be a list"
 
