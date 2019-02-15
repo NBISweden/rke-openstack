@@ -44,18 +44,11 @@ help='Applies the Terraform plan to spawn the desired resources')
 def apply(image):
     #client.images.pull(image)
     logging.info("""Applying setup""")
-    env = list(filter_vars(os.environ))
     check_environment()
-    client = docker.from_env()
-    command_init = 'terraform init -plugin-dir=/terraform_plugins && '
-    command_apply = 'terraform apply -auto-approve'
-    commands = '"' + command_init + command_apply + '"'
-    container_apply = client.containers.run(image, volumes=volume_mount,\
-    environment=env,working_dir=container_wd,\
-    entrypoint= ['bash', '-c'],command=commands,detach=True)
-    log_stream = container_apply.logs(stream=True,follow=True)
-    for line in log_stream:
-        print(line.decode())
+
+    run_in_container(['terraform init -plugin-dir=/terraform_plugins'
+                      'terraform apply -auto-approve'], image)
+
 
 @main.command('destroy')
 @click.option('-I','--image', default=default_image, envvar='REGA_PROVISIONER_IMG',\
@@ -63,16 +56,9 @@ help='Releses all resources available in the Terraform state')
 def destroy(image):
     #client.images.pull(image)
     logging.info("""Destroying the infrastructure""")
-    env = list(filter_vars(os.environ))
     check_environment()
-    client = docker.from_env()
-    command_destroy = 'terraform destroy -force'
-    container_destroy = client.containers.run(image, volumes=volume_mount,\
-    environment=env, working_dir=container_wd,\
-    command=command_destroy, detach=True)
-    log_stream = container_destroy.logs(stream=True,follow=True)
-    for line in log_stream:
-        print(line.decode())
+
+    run_in_container(['terraform destroy -force'], image)
 
 @main.command('terraform')
 @click.argument('extra_args')
@@ -81,16 +67,10 @@ help='Executes the terraform command in the provisioner container with the provi
 def terraform(extra_args,image):
     #client.images.pull(image)
     logging.info("""Running terraform with arguments: {}""".format(extra_args))
-    env = list(filter_vars(os.environ))
     check_environment()
-    client = docker.from_env()
-    command_destroy = 'terraform {}'.format(extra_args)
-    container_destroy = client.containers.run(image, volumes=volume_mount,\
-    environment=env, working_dir=container_wd,\
-    command=command_destroy, detach=True)
-    log_stream = container_destroy.logs(stream=True,follow=True)
-    for line in log_stream:
-        print(line.decode())
+
+    run_in_container(['terraform {}'.format(extra_args)], image)
+
 
 @main.command('openstack')
 @click.argument('extra_args')
@@ -99,10 +79,29 @@ help='Executes the openstack command in the provisioner container with the provi
 def openstack(extra_args,image):
     #client.images.pull(image)
     logging.info("""Running openstack with arguments: {}""".format(extra_args))
-    env = list(filter_vars(os.environ))
+
+    run_in_container(['openstack {}'.format(extra_args)], image)
+
+
+def run_in_container(commands, image, detach=True):
     client = docker.from_env()
-    output = client.containers.run(image, 'openstack {}'.format(extra_args))
-    logging.info('OPENSTACK: {}'.format(output))
+    env    = list(filter_vars(os.environ))
+
+    assert type(commands) == type(list()), "First argument should be a list"
+
+    commands_as_string = " && ".join(commands)
+    runner = client.containers.run(
+            image,
+            volumes     = volume_mount,
+            environment = env,
+            working_dir = container_wd,
+            entrypoint  = ['bash', '-c'],
+            command     = f'"{commands}"',
+            detach      = detach
+    )
+
+    for line in runner:
+        print(line.decode())
 
 def create_deployment(dir):
     """copy relevant files to new folder"""
