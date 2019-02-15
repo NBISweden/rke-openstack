@@ -7,7 +7,7 @@ DIM := \033[2m
 RESET := \033[0m
 
 .PHONY: all
-all: uninstall install clean
+all: lint uninstall install clean
 
 .PHONY: install
 install:
@@ -32,3 +32,7 @@ dist:
 clean:
 	@echo -e "cleaning $(PROJECT_NAME) $(PROJECT_VERSION) repository$(RESET)"
 	@rm -rf build dist $(PROJECT_NAME).egg-info
+
+.PHONY: lint
+lint:
+	flake8 --ignore E226,D203,D212,D213,D404,D100,D104 rega.py setup.py
