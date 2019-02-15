@@ -15,7 +15,7 @@ from distutils import dir_util
 
 logging.basicConfig(level=logging.INFO)
 
-default_image = 'novella/rega:latest'
+DEFAULT_IMAGE = 'novella/rega:latest'
 
 @click.group()
 def main():
@@ -23,7 +23,7 @@ def main():
 
 @main.command('init')
 @click.argument('dir')
-@click.option('-I','--image', default=default_image, envvar='REGA_PROVISIONER_IMG')
+@click.option('-I','--image', default=DEFAULT_IMAGE, envvar='REGA_PROVISIONER_IMG')
 def init(dir,image):
     logging.info("""Initilaizing a new environment in {}""".format(dir))
     client = docker.from_env()
@@ -32,12 +32,12 @@ def init(dir,image):
     create_deployment(dir)
 
 @main.command('version')
-@click.option('-I','--image', default=default_image, envvar='REGA_PROVISIONER_IMG')
+@click.option('-I','--image', default=DEFAULT_IMAGE, envvar='REGA_PROVISIONER_IMG')
 def version(image):
     logging.info("""REGA provisioner version is {}""".format(image))
 
 @main.command('apply')
-@click.option('-I','--image', default=default_image, envvar='REGA_PROVISIONER_IMG',\
+@click.option('-I','--image', default=DEFAULT_IMAGE, envvar='REGA_PROVISIONER_IMG',\
 help='Applies the Terraform plan to spawn the desired resources')
 def apply(image):
     #client.images.pull(image)
@@ -49,7 +49,7 @@ def apply(image):
 
 
 @main.command('destroy')
-@click.option('-I','--image', default=default_image, envvar='REGA_PROVISIONER_IMG',\
+@click.option('-I','--image', default=DEFAULT_IMAGE, envvar='REGA_PROVISIONER_IMG',\
 help='Releses all resources available in the Terraform state')
 def destroy(image):
     #client.images.pull(image)
@@ -60,7 +60,7 @@ def destroy(image):
 
 @main.command('terraform')
 @click.argument('extra_args')
-@click.option('-I','--image', default=default_image, envvar='REGA_PROVISIONER_IMG',\
+@click.option('-I','--image', default=DEFAULT_IMAGE, envvar='REGA_PROVISIONER_IMG',\
 help='Executes the terraform command in the provisioner container with the provided args')
 def terraform(extra_args,image):
     #client.images.pull(image)
@@ -72,7 +72,7 @@ def terraform(extra_args,image):
 
 @main.command('openstack')
 @click.argument('extra_args')
-@click.option('-I','--image', default=default_image, envvar='REGA_PROVISIONER_IMG',\
+@click.option('-I','--image', default=DEFAULT_IMAGE, envvar='REGA_PROVISIONER_IMG',\
 help='Executes the openstack command in the provisioner container with the provided args')
 def openstack(extra_args,image):
     #client.images.pull(image)
