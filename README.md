@@ -30,7 +30,7 @@ To create a new deployment project you can run:
 rega init <my-project>
 cd <my-project>
 ```
-Once in your project folder, modify the file called `terraform.tfvars` where you specify the values for the following settings:
+Once in your project folder, create a file called `terraform.tfvars` where you specify the values for the following settings:
 
 ```yml
 cluster_prefix="my-test"
@@ -38,6 +38,7 @@ ssh_key_pub="ssh_key.pub"
 ssh_key="ssh_key"
 external_network_id=""
 floating_ip_pool=""
+# The image should not have Docker built-in
 image_name="Ubuntu 16.04 LTS (Xenial Xerus) - latest"
 master_flavor_name="ssc.medium"
 master_count=1
