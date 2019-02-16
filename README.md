@@ -8,7 +8,7 @@ On your machine you need the following requirements:
 - [Docker](https://www.docker.com/)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 - [Helm](https://github.com/helm/helm/releases)
-- [Python 3.5+](https://www.python.org/downloads/)
+- [Python 3.7+](https://www.python.org/downloads/)
 - Set up the environment by [sourcing the OpenStack RC](https://docs.openstack.org/zh_CN/user-guide/common/cli-set-environment-variables-using-openstack-rc.html) file for your project
 
 
