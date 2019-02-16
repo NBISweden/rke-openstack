@@ -90,7 +90,7 @@ def run_in_container(commands, image):
     volume_mount = {os.getcwd(): {'bind': '/mnt/deployment/', 'mode': 'rw'}}
     container_wd = '/mnt/deployment/'
 
-    assert isinstance(commands, list()), "First argument should be a list"
+    assert isinstance(commands, list)
 
     commands_as_string = " && ".join(commands)
     runner = client.containers.run(
