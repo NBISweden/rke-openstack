@@ -103,7 +103,7 @@ def run_in_container(commands, image):
         detach=True
     )
 
-    for line in runner:
+    for line in runner.logs(stream=True,follow=True):
         print(line.decode())
 
 
