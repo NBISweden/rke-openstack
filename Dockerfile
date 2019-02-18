@@ -9,6 +9,7 @@ ENV PLUGIN_RKE=0.7.1
 ENV PLUGIN_KUBERNETES=1.5.0
 ENV PLUGIN_NULL=2.0.0
 ENV PLUGIN_LOCAL=1.1.0
+ENV PLUGIN_TEMPLATE=2.0.0
 
 # PIP version
 ENV PIP=9.0.3
@@ -65,3 +66,8 @@ RUN curl -sL "https://github.com/yamamoto-febc/terraform-provider-rke/releases/d
     "terraform-provider-rke_${PLUGIN_RKE}_linux_amd64.zip" && \
     unzip "terraform-provider-rke_${PLUGIN_RKE}_linux_amd64.zip" -d /terraform_plugins/ && \
     rm -f "terraform-provider-rke_${PLUGIN_RKE}_linux_amd64.zip"
+
+RUN curl "https://releases.hashicorp.com/terraform-provider-template/${PLUGIN_TEMPLATE}/terraform-provider-template_${PLUGIN_TEMPLATE}_linux_amd64.zip" > \
+    "terraform-provider-template_${PLUGIN_TEMPLATE}_linux_amd64.zip" && \
+    unzip "terraform-provider-template_${PLUGIN_TEMPLATE}_linux_amd64.zip" -d /terraform_plugins/ && \
+    rm -f "terraform-provider-template_${PLUGIN_TEMPLATE}_linux_amd64.zip"
