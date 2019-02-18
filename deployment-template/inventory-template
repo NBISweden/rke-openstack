@@ -1,0 +1,6 @@
+[master]
+${masters}
+[k8s-version]
+${kubernetes_version}
+[docker-version]
+${docker_version}
