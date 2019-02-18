@@ -33,13 +33,17 @@ cd <my-project>
 Once in your project folder, create a file called `terraform.tfvars` where you specify the values for the following settings:
 
 ```yml
+# Unique name for the resources
 cluster_prefix="my-test"
+# Key pair settings
 ssh_key_pub="ssh_key.pub"
 ssh_key="ssh_key"
+# Network settings
 external_network_id=""
 floating_ip_pool=""
-# The image should not have Docker built-in
+# Image name
 image_name="Ubuntu 16.04 LTS (Xenial Xerus) - latest"
+# Node counts and flavours
 master_flavor_name="ssc.medium"
 master_count=1
 service_flavor_name="ssc.medium"
