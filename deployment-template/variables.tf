@@ -3,6 +3,10 @@ variable cluster_prefix {
   default     = "rke"
 }
 
+variable inventory_template {
+  default = "inventory-template"
+}
+
 variable ssh_key {
   description = "Local path to SSH key"
 }
