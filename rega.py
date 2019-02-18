@@ -23,7 +23,7 @@ def main():
 @click.option('-I', '--image', default=DEFAULT_IMAGE,
               envvar='REGA_PROVISIONER_IMG')
 def init(dir, image):
-    logging.info("""Initilaizing a new environment in {}""".format(dir))
+    logging.info("""Initilising a new environment in {}""".format(dir))
     client = docker.from_env()
     client.images.pull(image)
     check_init_dir()
