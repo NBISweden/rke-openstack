@@ -8,6 +8,11 @@ output "public_ip_list" {
   value       = ["${openstack_compute_floatingip_v2.floating_ip.*.address}"]
 }
 
+output "private_ip_list" {
+  description = "List of local IP addresses"
+  value = ["${openstack_compute_instance_v2.instance.*.network.0.fixed_ip_v4}"]
+}
+
 output "prepare_nodes_id_list" {
   description = "Prepare nodes provisioner resource ID list"
   value       = ["${null_resource.prepare_nodes.*.id}"]
