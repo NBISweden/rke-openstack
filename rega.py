@@ -45,7 +45,7 @@ def apply(image):
     logging.info("""Applying setup""")
     check_environment()
 
-    run_in_container(['terraform init -plugin-dir=/terraform_plugins'
+    run_in_container(['terraform init -plugin-dir=/terraform_plugins',
                       'terraform apply -auto-approve'], image)
 
 
