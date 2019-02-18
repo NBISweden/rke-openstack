@@ -1,6 +1,5 @@
 import sys
 import os
-import subprocess
 import click
 import docker
 import logging
@@ -111,8 +110,7 @@ def create_deployment(dir):
     """copy relevant files to new folder"""
     if os.path.exists('deployment-template'):
         dir_util.mkpath(dir)
-        subprocess.call('cp -r deployment-template/* ./{}/'.format(dir),
-                        shell=True)
+        dir_util.copy_tree('deployment-template/','./{}/'.format(dir))
     else:
         sys.stderr.write("Error: deployment-template folder not found. Are you in the right directory?\n")
         sys.exit(1)
