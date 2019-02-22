@@ -58,9 +58,13 @@ def apply(image,mode):
 @main.command('destroy')
 @click.option('-I', '--image', default=DEFAULT_IMAGE,
               envvar='REGA_PROVISIONER_IMG',
-              help='Releses all resources available in the Terraform state')
-def destroy(image):
-    logging.info("""Destroying the infrastructure""")
+              help='Docker image used for provisioning')
+@click.option('-M', '--modules', default='infra',
+              type=click.Choice(['infra', 'k8s', 'all']),
+              help='Options are: "infra", "k8s" and "all"')
+def destroy(image,mode):
+    """Releases the previously requested resources."""
+    logging.info("""Destroying the infrastructure using mode {}""".format(mode))
     check_environment()
 
     run_in_container(['terraform destroy -force'], image)
