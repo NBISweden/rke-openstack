@@ -70,8 +70,26 @@ data "template_file" "inventory" {
 
   vars {
     masters                = "${local.masters}"
+    edges                  = "${local.edges}"
+    services               = "${local.services}"
     kubernetes_version     = "${local.kubernetes_version}"
     docker_version         = "${local.docker_version}"
 
+  }
+}
+
+# Write the template to a file
+resource "null_resource" "local" {
+  # Trigger rewrite of inventory, uuid() generates a random string everytime it is called
+  triggers {
+    uuid = "${uuid()}"
+  }
+
+  triggers {
+    template = "${data.template_file.inventory.rendered}"
+  }
+
+  provisioner "local-exec" {
+    command = "echo \"${data.template_file.inventory.rendered}\" > \"${path.root}/${var.inventory_output_file}\""
   }
 }
