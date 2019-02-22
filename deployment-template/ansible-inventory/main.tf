@@ -59,8 +59,9 @@ locals {
   edge_public_ip  = "${split(",", length(var.edge_public_ip) == 0 ? join(",", list("")) : join(",", var.edge_public_ip))}"
   edge_private_ip = "${split(",", length(var.edge_private_ip) == 0 ? join(",", list("")) : join(",", var.edge_private_ip))}"
 
-  # Format list of different service types
-  masters    = "${join("\n",formatlist("ansible_host=%s ansible_user=%s private_ip=%s", local.master_public_ip, var.ssh_user, local.master_private_ip ))}"
+  masters    = "${join("\n",formatlist("ansible_host=%s ansible_user=%s private_ip=%s", var.master_public_ip, var.ssh_user, local.master_private_ip ))}"
+  edges    = "${join("\n",formatlist("ansible_host=%s ansible_user=%s private_ip=%s", var.edge_public_ip, var.ssh_user, local.edge_private_ip ))}"
+  services    = "${join("\n",formatlist("ansible_host=%s ansible_user=%s private_ip=%s", var.service_public_ip, var.ssh_user, local.service_private_ip ))}"
 }
 
 # Generate inventory from template file
