@@ -122,18 +122,18 @@ module "rke" {
 }
 
 # Generate Ansible inventory
-module "generate-inventory" {
+module "inventory" {
   source                 = "ansible-inventory"
   cluster_prefix         = "${var.cluster_prefix}"
   ssh_user               = "${var.ssh_user}"
   master_count           = "${var.master_count}"
-  master_public_ip       = "${module.master.public_ip_list}"
+  master_public_ip       = "${module.master.access_ip_list}"
   master_private_ip      = "${module.master.private_ip_list}"
   edge_count             = "${var.edge_count}"
-  edge_public_ip         = "${module.edge.public_ip_list}"
+  edge_public_ip         = "${module.edge.access_ip_list}"
   edge_private_ip        = "${module.edge.private_ip_list}"
   service_count          = "${var.service_count}"
-  service_public_ip      = "${module.service.public_ip_list}"
+  service_public_ip      = "${module.service.access_ip_list}"
   service_private_ip     = "${module.service.private_ip_list}"
   kubernetes_version     = "${var.kubernetes_version}"
   docker_version         = "${var.docker_version}"
