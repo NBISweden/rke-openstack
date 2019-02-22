@@ -42,9 +42,13 @@ def version(image):
 @main.command('apply')
 @click.option('-I', '--image', default=DEFAULT_IMAGE,
               envvar='REGA_PROVISIONER_IMG',
-              help='Applies the Terraform plan to spawn the desired resources')
-def apply(image):
-    logging.info("""Applying setup""")
+              help='Docker image used for provisioning')
+@click.option('-M', '--modules', default='infra',
+              type=click.Choice(['infra', 'k8s', 'all']),
+              help='Options are: "infra", "k8s" and "all"')
+def apply(image,mode):
+    """Applies the Terraform plan to spawn the desired resources."""
+    logging.info("""Applying setup using mode {}""".format(mode))
     check_environment()
 
     run_in_container(['terraform init -plugin-dir=/terraform_plugins',
