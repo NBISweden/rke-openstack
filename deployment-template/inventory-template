@@ -1,5 +1,9 @@
 [master]
 ${masters}
+[edge]
+${edges}
+[service]
+${services}
 [k8s-version]
 ${kubernetes_version}
 [docker-version]
