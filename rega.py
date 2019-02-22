@@ -50,9 +50,9 @@ def apply(image,mode):
     """Applies the Terraform plan to spawn the desired resources."""
     logging.info("""Applying setup using mode {}""".format(mode))
     check_environment()
-
+    modules = get_tf_modules(mode)
     run_in_container(['terraform init -plugin-dir=/terraform_plugins',
-                      'terraform apply -auto-approve'], image)
+                      'terraform apply -auto-approve {}'.format(modules)], image)
 
 
 @main.command('destroy')
