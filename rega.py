@@ -23,6 +23,7 @@ def main():
 @click.option('-I', '--image', default=DEFAULT_IMAGE,
               envvar='REGA_PROVISIONER_IMG')
 def init(dir, image):
+    """Initialises a new REGA environment."""
     logging.info("""Initilising a new environment in {}""".format(dir))
     client = docker.from_env()
     client.images.pull(image)
@@ -34,6 +35,7 @@ def init(dir, image):
 @click.option('-I', '--image', default=DEFAULT_IMAGE,
               envvar='REGA_PROVISIONER_IMG')
 def version(image):
+    """Outputs the version of the provisioning container."""
     logging.info("""REGA provisioner version is {}""".format(image))
 
 
@@ -66,6 +68,7 @@ def destroy(image):
               envvar='REGA_PROVISIONER_IMG',
               help='Executes the terraform command in the provisioner container with the provided args')
 def terraform(extra_args, image):
+    """Executes the terraform command in the provisioner container with the provided args."""
     logging.info("""Running terraform with arguments: {}""".format(extra_args))
     check_environment()
 
@@ -78,6 +81,7 @@ def terraform(extra_args, image):
               envvar='REGA_PROVISIONER_IMG',
               help='Executes the openstack command in the provisioner container with the provided args')
 def openstack(extra_args, image):
+    """Executes the openstack command in the provisioner container with the provided args."""
     logging.info("""Running openstack with arguments: {}""".format(extra_args))
 
     run_in_container(['openstack {}'.format(extra_args)], image)
@@ -107,7 +111,7 @@ def run_in_container(commands, image):
 
 
 def create_deployment(dir):
-    """copy relevant files to new folder"""
+    """Copy relevant files to new folder."""
     if os.path.exists('deployment-template'):
         dir_util.mkpath(dir)
         dir_util.copy_tree('deployment-template/','./{}/'.format(dir))
