@@ -66,8 +66,8 @@ def destroy(image,mode):
     """Releases the previously requested resources."""
     logging.info("""Destroying the infrastructure using mode {}""".format(mode))
     check_environment()
-
-    run_in_container(['terraform destroy -force'], image)
+    modules = get_tf_modules(mode)
+    run_in_container(['terraform destroy -force {}'.format(modules)], image)
 
 
 @main.command('terraform')
