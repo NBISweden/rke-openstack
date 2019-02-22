@@ -59,9 +59,9 @@ os_tenant_name=""
 os_domain_name=""
 ```
 
-To fire up the infrastructure execute:
+To fire up the infrastructure execute the `apply` command with the desired modules. By default only the infra modules will be created.
 ```
-rega apply
+rega apply --modules=[infra,k8s,all]
 ```
 
 Once the deployment is done, you can configure `kubectl` and explore the cluster:
@@ -73,10 +73,10 @@ kubectl get nodes
 
 ## Release resources
 
-You can release the resources by running:
+You can release the resources by running `destroy` with the desired modules. By default only the infra modules will be released.
 
 ```
-rega destroy
+rega destroy --modules=[infra,k8s,all]
 ```
 
 ## Rancher Server
