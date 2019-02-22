@@ -74,7 +74,7 @@ def destroy(image,mode):
 @click.argument('extra_args')
 @click.option('-I', '--image', default=DEFAULT_IMAGE,
               envvar='REGA_PROVISIONER_IMG',
-              help='Executes the terraform command in the provisioner container with the provided args')
+              help='Docker image used for provisioning')
 def terraform(extra_args, image):
     """Executes the terraform command in the provisioner container with the provided args."""
     logging.info("""Running terraform with arguments: {}""".format(extra_args))
@@ -87,7 +87,7 @@ def terraform(extra_args, image):
 @click.argument('extra_args')
 @click.option('-I', '--image', default=DEFAULT_IMAGE,
               envvar='REGA_PROVISIONER_IMG',
-              help='Executes the openstack command in the provisioner container with the provided args')
+              help='Docker image used for provisioning')
 def openstack(extra_args, image):
     """Executes the openstack command in the provisioner container with the provided args."""
     logging.info("""Running openstack with arguments: {}""".format(extra_args))
