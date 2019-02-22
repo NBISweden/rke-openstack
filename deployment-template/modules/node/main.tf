@@ -40,6 +40,11 @@ resource "openstack_compute_floatingip_associate_v2" "associate_floating_ip" {
   instance_id = "${element(openstack_compute_instance_v2.instance.*.id, count.index)}"
 }
 
+locals {
+  # Workaround for list not supported in conditionals (https://github.com/hashicorp/terraform/issues/12453)
+  address_list = ["${split(",", var.assign_floating_ip ? join(",", openstack_compute_floatingip_v2.floating_ip.*.address) : join(",", openstack_compute_instance_v2.instance.*.network.0.fixed_ip_v4))}"]
+}
+
 # Prepare nodes for RKE
 resource null_resource "prepare_nodes" {
   count = "${var.count}"
@@ -65,12 +70,6 @@ resource null_resource "prepare_nodes" {
       "sudo usermod -a -G docker ${var.ssh_user}",
     ]
   }
-}
-
-# RKE node mappings
-locals {
-  # Workaround for list not supported in conditionals (https://github.com/hashicorp/terraform/issues/12453)
-  address_list = ["${split(",", var.assign_floating_ip ? join(",", openstack_compute_floatingip_v2.floating_ip.*.address) : join(",", openstack_compute_instance_v2.instance.*.network.0.fixed_ip_v4))}"]
 }
 
 data rke_node_parameter "node_mappings" {
