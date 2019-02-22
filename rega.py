@@ -110,6 +110,17 @@ def run_in_container(commands, image):
         print(line.decode())
 
 
+def get_tf_modules(mode):
+    if mode == 'infra':
+        modules = '-target=module.network -target=module.secgroup\
+         -target=module.master -target=module.service -target=module.edge\
+         -target=module.inventory'
+    elif mode == 'k8s':
+        modules = '-target=module.rke'
+    elif mode == 'all':
+        modules = ''
+    return modules
+
 def create_deployment(dir):
     """Copy relevant files to new folder."""
     if os.path.exists('deployment-template'):
