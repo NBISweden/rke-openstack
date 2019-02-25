@@ -1,4 +1,6 @@
 import sys
+import yaml
+import hcl
 import os
 import click
 import docker
