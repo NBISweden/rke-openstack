@@ -72,9 +72,6 @@ data "template_file" "inventory" {
     masters                = "${local.masters}"
     edges                  = "${local.edges}"
     services               = "${local.services}"
-    kubernetes_version     = "${local.kubernetes_version}"
-    docker_version         = "${local.docker_version}"
-
   }
 }
 
