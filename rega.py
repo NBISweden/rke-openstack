@@ -46,13 +46,13 @@ def version(image):
 @click.option('-M', '--modules', default='infra',
               type=click.Choice(['infra', 'k8s', 'all']),
               help='Options are: "infra", "k8s" and "all"')
-def apply(image,mode):
+def apply(image,modules):
     """Applies the Terraform plan to spawn the desired resources."""
-    logging.info("""Applying setup using mode {}""".format(mode))
+    logging.info("""Applying setup using mode {}""".format(modules))
     check_environment()
-    modules = get_tf_modules(mode)
+    tf_modules = get_tf_modules(modules)
     run_in_container(['terraform init -plugin-dir=/terraform_plugins',
-                      'terraform apply -auto-approve {}'.format(modules)], image)
+                      'terraform apply -auto-approve {}'.format(tf_modules)], image)
 
 
 @main.command('destroy')
@@ -62,12 +62,12 @@ def apply(image,mode):
 @click.option('-M', '--modules', default='infra',
               type=click.Choice(['infra', 'k8s', 'all']),
               help='Options are: "infra", "k8s" and "all"')
-def destroy(image,mode):
+def destroy(image,modules):
     """Releases the previously requested resources."""
-    logging.info("""Destroying the infrastructure using mode {}""".format(mode))
+    logging.info("""Destroying the infrastructure using mode {}""".format(modules))
     check_environment()
-    modules = get_tf_modules(mode)
-    run_in_container(['terraform destroy -force {}'.format(modules)], image)
+    tf_modules = get_tf_modules(modules)
+    run_in_container(['terraform destroy -force {}'.format(tf_modules)], image)
 
 
 @main.command('terraform')
