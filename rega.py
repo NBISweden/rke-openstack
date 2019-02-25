@@ -14,7 +14,6 @@ logging.basicConfig(level=logging.INFO)
 
 DEFAULT_IMAGE = 'novella/rega:latest'
 
-
 @click.group()
 def main():
     """REGA is a tool for provisioning RKE clusters."""
@@ -31,7 +30,6 @@ def init(dir, image):
     client.images.pull(image)
     check_init_dir()
     create_deployment(dir)
-
 
 @main.command('version')
 @click.option('-I', '--image', default=DEFAULT_IMAGE,
