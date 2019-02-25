@@ -154,6 +154,7 @@ def create_deployment(dir):
             key.write(pu)
         with open(dir + '/ssh_key', 'w') as key:
             key.write(pv)
+            os.chmod(dir + '/ssh_key', 0o400)
 
 
 def check_environment():
