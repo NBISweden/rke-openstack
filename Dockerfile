@@ -2,6 +2,7 @@ FROM ubuntu:bionic-20190204
 
 # Terraform and Openstack client versions
 ENV TERRAFORM_VERSION=0.11.11
+ENV ANSIBLE_VERSION=2.7.8
 ENV OPENSTACKCLIENT_VERSION=3.17.0
 # Terraform plugin versions
 ENV PLUGIN_OPENSTACK=1.16.0
@@ -28,7 +29,8 @@ RUN apt update -y && \
       unzip && \
     pip install --no-cache-dir --upgrade pip=="${PIP}" && \
     pip install --no-cache-dir \
-      python-openstackclient=="$OPENSTACKCLIENT_VERSION" && \
+      python-openstackclient=="$OPENSTACKCLIENT_VERSION" \
+      ansible=="$ANSIBLE_VERSION" && \
     rm -rf /usr/lib/gcc && \
     rm -rf /usr/share/man && \
     apt clean && \
