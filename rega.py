@@ -193,6 +193,34 @@ def create_key_pair():
     )
     return (public_key.decode('utf-8'), private_key.decode('utf-8'))
 
+def generate_vars_file():
+    tf_vars = dict()
+
+    with open("terraform.tfvars", 'r') as stream:
+        tf_vars = hcl.load(stream)
+
+    ssh_user = 'ubuntu'
+    private_key = 'ssh_key'
+    cluster_prefix = 'rke'
+
+    if 'cluster_prefix' in tf_vars:
+        cluster_prefix = tf_vars['cluster_prefix'].replace("'", "")
+    if 'ssh_key' in tf_vars:
+        private_key = tf_vars['ssh_key']
+    if 'ssh_user' in tf_vars:
+        ssh_user = tf_vars['ssh_user']
+
+    data = {
+        "edge_host": "{}-edge-000".format(cluster_prefix),
+        "edge_ip": "{{ hostvars.get(edge_host)[\"ansible_host\"] }}",
+        "ssh_user": ssh_user,
+        "private_key": private_key
+        }
+
+    vars_file = 'playbooks/group_vars/all'
+
+    with open(vars_file, 'w') as fh:
+        fh.write(yaml.dump(data, default_flow_style=False))
 
 def filter_vars(seq):
     for key, val in seq.items():
