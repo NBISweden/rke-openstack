@@ -99,7 +99,7 @@ def openstack(extra_args, image):
               envvar='REGA_PROVISIONER_IMG',
               help='Docker image used for provisioning')
 def provision(image):
-    """Executes Ansible playbooks specificied as arg."""
+    """Executes the master Ansible playbook."""
     check_environment()
     generate_vars_file()
     run_in_container(['ansible-playbook playbooks/setup.yml'], image)
