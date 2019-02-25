@@ -1,7 +1,5 @@
-variable cluster_prefix {}
 variable ssh_user {}
-variable kubernetes_version {}
-variable docker_version {}
+variable cluster_prefix {}
 
 variable master_count {}
 
