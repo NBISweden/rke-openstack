@@ -71,6 +71,15 @@ export KUBECONFIG="$PWD/kube_config_cluster.yml"
 kubectl get nodes
 ```
 
+
+## Provisioning with Ansible
+
+You can use Ansible to provision the virtual machines by running the following command:
+
+```
+rega provision
+```
+
 ## Release resources
 
 You can release the resources by running `destroy` with the desired modules. By default only the infra modules will be released.
