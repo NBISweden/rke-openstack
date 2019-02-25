@@ -10,6 +10,7 @@ setup(
     author='Jon Ander Novella',
     install_requires=[
         'click>=6.7',
+        'pyhcl==0.3.11',
         'click-plugins',
         'docker==2.0.0',
         'cryptography==2.5.0'
