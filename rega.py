@@ -204,7 +204,7 @@ def generate_vars_file():
     cluster_prefix = 'rke'
 
     if 'cluster_prefix' in tf_vars:
-        cluster_prefix = tf_vars['cluster_prefix'].replace("'", "")
+        cluster_prefix = tf_vars['cluster_prefix']
     if 'ssh_key' in tf_vars:
         private_key = tf_vars['ssh_key']
     if 'ssh_user' in tf_vars:
