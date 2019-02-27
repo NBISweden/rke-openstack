@@ -1,2 +1,0 @@
-- debug:
-    msg: "{{ hostvars[groups['edge'][0]]['ansible_host'] }}"
