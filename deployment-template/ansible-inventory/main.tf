@@ -60,9 +60,6 @@ variable inventory_output_file {
 
 locals {
 
-  kubernetes_version = "${var.kubernetes_version}"
-  docker_version = "${var.docker_version}"
-
   master_hostnames  = "${split(",", length(var.master_hostnames) == 0 ? join(",", list("")) : join(",", var.master_hostnames))}"
   master_private_ip = "${split(",", length(var.master_private_ip) == 0 ? join(",", list("")) : join(",", var.master_private_ip))}"
 
