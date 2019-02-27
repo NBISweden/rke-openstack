@@ -45,33 +45,6 @@ locals {
   address_list = ["${split(",", var.assign_floating_ip ? join(",", openstack_compute_floatingip_v2.floating_ip.*.address) : join(",", openstack_compute_instance_v2.instance.*.network.0.fixed_ip_v4))}"]
 }
 
-# Prepare nodes for RKE
-resource null_resource "prepare_nodes" {
-  count = "${var.count}"
-
-  triggers {
-    instance_id = "${element(openstack_compute_instance_v2.instance.*.id, count.index)}"
-  }
-
-  provisioner "remote-exec" {
-    connection {
-      # External
-      bastion_host     = "${var.ssh_bastion_host}"
-      bastion_host_key = "${file(var.ssh_key)}"
-
-      # Internal
-      host        = "${element(openstack_compute_instance_v2.instance.*.network.0.fixed_ip_v4, count.index)}"
-      user        = "${var.ssh_user}"
-      private_key = "${file(var.ssh_key)}"
-    }
-
-    inline = [
-      "wget -O - releases.rancher.com/install-docker/${var.docker_version}.sh | bash",
-      "sudo usermod -a -G docker ${var.ssh_user}",
-    ]
-  }
-}
-
 data rke_node_parameter "node_mappings" {
   count = "${var.count}"
 
