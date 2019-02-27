@@ -130,6 +130,7 @@ def apply_tf_modules(target, image):
         terraform_apply(get_tf_modules(target), image)
     elif target == 'all':
         terraform_apply(get_tf_modules('infra'), image)
+        generate_vars_file()
         run_ansible('setup', image)
         terraform_apply(get_tf_modules('k8s'), image)
 
