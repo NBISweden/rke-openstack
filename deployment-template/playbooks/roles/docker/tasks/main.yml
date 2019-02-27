@@ -1,0 +1,34 @@
+---
+- name: determine if docker is installed
+  command: which docker
+  register: docker_installed
+  ignore_errors: true
+  changed_when: false
+
+- name: get docker version
+  shell: docker --version | awk '{ print $3 }'
+  register: docker_installed_version
+  when: docker_installed is success
+  changed_when: false
+
+- name: install or upgrade docker
+  shell: curl https://releases.rancher.com/install-docker/{{ docker_version }}.sh | sh
+  when: not docker_installed is success or
+        not docker_installed_version.stdout is search(docker_version is string)
+
+- name: Ensure group "docker" exists
+  group:
+    name: docker
+    state: present
+
+- name: add our login user to docker group
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes
+
+- name: Make sure docker is running
+  service:
+    state: started
+    enabled: true
+    name: docker
