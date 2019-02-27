@@ -138,7 +138,7 @@ def apply_tf_modules(target, image):
 def get_tf_modules(target):
     infra_modules = '-target=module.network -target=module.secgroup\
                     -target=module.master -target=module.service -target=module.edge\
-                    -target=module.inventory'
+                    -target=module.inventory -target=module.keypair'
     k8s_modules = '-target=module.rke'
 
     if target == 'infra':
