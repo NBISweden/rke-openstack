@@ -18,11 +18,6 @@ output "private_ip_list" {
   value = ["${openstack_compute_instance_v2.instance.*.network.0.fixed_ip_v4}"]
 }
 
-output "prepare_nodes_id_list" {
-  description = "Prepare nodes provisioner resource ID list"
-  value       = ["${null_resource.prepare_nodes.*.id}"]
-}
-
 output "associate_floating_ip_id_list" {
   description = "Associate floating IP resource ID list"
   value       = ["${openstack_compute_floatingip_associate_v2.associate_floating_ip.*.id}"]
