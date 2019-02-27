@@ -38,10 +38,11 @@ cluster_prefix="my-test"
 # Key pair settings
 ssh_key_pub="ssh_key.pub"
 ssh_key="ssh_key"
+ssh_user="ubuntu"
 # Network settings
 external_network_id=""
 floating_ip_pool=""
-# Image name
+# Image name (Tested with ubuntu and centos so far)
 image_name="Ubuntu 16.04 LTS (Xenial Xerus) - latest"
 # Node counts and flavours
 master_flavor_name="ssc.medium"
@@ -74,10 +75,10 @@ kubectl get nodes
 
 ## Provisioning with Ansible
 
-You can use Ansible to provision the virtual machines by running the following command:
+You can run Ansible playbooks against the virtual machines by running the `provision` command. It expects the path of the playbook under the `playbooks` folder. For example:
 
 ```
-rega provision
+rega provision setup
 ```
 
 ## Release resources
