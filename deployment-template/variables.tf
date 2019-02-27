@@ -64,11 +64,6 @@ variable ignore_docker_version {
   default     = false
 }
 
-variable docker_version {
-  description = "Docker version (should be RKE v0.1.x compliant: https://rancher.com/docs/rke/v0.1.x/en/os/#software)"
-  default     = "17.03"
-}
-
 variable kubernetes_version {
   description = "Kubernetes version (should be RKE v0.1.x compliant: https://hub.docker.com/r/rancher/k8s/tags)"
   default     = "v1.12.4-rancher1-1"
