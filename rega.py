@@ -91,14 +91,15 @@ def openstack(extra_args, image):
     run_in_container(['openstack {}'.format(extra_args)], image)
 
 @main.command('provision')
+@click.argument('extra_args')
 @click.option('-I', '--image', default=DEFAULT_IMAGE,
               envvar='REGA_PROVISIONER_IMG',
               help='Docker image used for provisioning')
-def provision(image):
-    """Executes the master Ansible playbook."""
+def provision(image,extra_args):
+    """Executes the Ansible playbook specified as an argument."""
     check_environment()
     generate_vars_file()
-    run_in_container(['ansible-playbook playbooks/setup.yml'], image)
+    run_ansible(extra_args, image)
 
 
 def run_in_container(commands, image):
