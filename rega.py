@@ -76,7 +76,6 @@ def terraform(extra_args, image):
     """Executes the terraform command in the provisioner container with the provided args."""
     logging.info("""Running terraform with arguments: {}""".format(extra_args))
     check_environment()
-
     run_in_container(['terraform {}'.format(extra_args)], image)
 
 
