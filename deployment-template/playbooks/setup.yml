@@ -1,18 +1,3 @@
-- hosts: localhost
-  roles:
-      - { role: test }
-
 - hosts: edge,service,master
-  gather_facts: False
-  pre_tasks:
-    - name: Installing python
-      become: True
-      raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
-
-- hosts: edge
   roles:
-      - { role: test }
-
-- hosts: service
-  roles:
-      - { role: test }
+      - { role: docker, become: True }
