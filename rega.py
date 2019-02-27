@@ -125,16 +125,37 @@ def run_in_container(commands, image):
         print(line.decode())
 
 
-def get_tf_modules(mode):
-    if mode == 'infra':
-        modules = '-target=module.network -target=module.secgroup\
-         -target=module.master -target=module.service -target=module.edge\
-         -target=module.inventory'
-    elif mode == 'k8s':
-        modules = '-target=module.rke'
-    elif mode == 'all':
-        modules = ''
-    return modules
+def apply_tf_modules(target, image):
+    if target == 'infra' or target == 'k8s':
+        terraform_apply(get_tf_modules(target), image)
+    elif target == 'all':
+        terraform_apply(get_tf_modules('infra'), image)
+        run_ansible('setup', image)
+        terraform_apply(get_tf_modules('k8s'), image)
+
+
+def get_tf_modules(target):
+    infra_modules = '-target=module.network -target=module.secgroup\
+                    -target=module.master -target=module.service -target=module.edge\
+                    -target=module.inventory'
+    k8s_modules = '-target=module.rke'
+
+    if target == 'infra':
+        return infra_modules
+    elif target == 'k8s':
+        return k8s_modules
+    elif target == 'all':
+        return ''
+
+
+def terraform_apply(modules, image):
+    run_in_container(['terraform init -plugin-dir=/terraform_plugins',
+                      'terraform apply -auto-approve {}'.format(modules)], image)
+
+
+def run_ansible(playbook, image):
+    run_in_container(['ansible-playbook playbooks/{}.yml'.format(playbook)], image)
+
 
 def create_deployment(dir):
     """Copy relevant files to new folder."""
