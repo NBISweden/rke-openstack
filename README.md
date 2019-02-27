@@ -38,12 +38,12 @@ cluster_prefix="my-test"
 # Key pair settings
 ssh_key_pub="ssh_key.pub"
 ssh_key="ssh_key"
-ssh_user="ubuntu"
+ssh_user="centos"
 # Network settings
 external_network_id=""
 floating_ip_pool=""
-# Image name (Tested with ubuntu and centos so far)
-image_name="Ubuntu 16.04 LTS (Xenial Xerus) - latest"
+# Image name (Tested with centos so far)
+image_name="CentOS 7 - latest"
 # Node counts and flavours
 master_flavor_name="ssc.medium"
 master_count=1
