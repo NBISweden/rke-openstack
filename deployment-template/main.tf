@@ -1,7 +1,8 @@
-# Add public key
-resource "openstack_compute_keypair_v2" "keypair" {
-  name       = "${var.cluster_prefix}-keypair"
-  public_key = "${file(var.ssh_key_pub)}"
+# Upload SSH key to OpenStack
+module "keypair" {
+  source      = "modules/keypair"
+  public_ssh_key  = "${var.ssh_key_pub}"
+  key_prefix = "${var.cluster_prefix}"
 }
 
 # Create security group
@@ -31,7 +32,7 @@ module "master" {
   floating_ip_pool   = "${var.floating_ip_pool}"
   ssh_user           = "${var.ssh_user}"
   ssh_key            = "${var.ssh_key}"
-  os_ssh_keypair     = "${openstack_compute_keypair_v2.keypair.name}"
+  os_ssh_keypair     = "${module.keypair.keypair_name}"
   ssh_bastion_host   = "${element(module.edge.public_ip_list,0)}"
   assign_floating_ip = "${var.master_assign_floating_ip}"
   role               = ["controlplane", "etcd"]
@@ -53,7 +54,7 @@ module "service" {
   floating_ip_pool   = "${var.floating_ip_pool}"
   ssh_user           = "${var.ssh_user}"
   ssh_key            = "${var.ssh_key}"
-  os_ssh_keypair     = "${openstack_compute_keypair_v2.keypair.name}"
+  os_ssh_keypair     = "${module.keypair.keypair_name}"
   ssh_bastion_host   = "${element(module.edge.public_ip_list,0)}"
   assign_floating_ip = "${var.service_assign_floating_ip}"
   role               = ["worker"]
@@ -75,7 +76,7 @@ module "edge" {
   floating_ip_pool   = "${var.floating_ip_pool}"
   ssh_user           = "${var.ssh_user}"
   ssh_key            = "${var.ssh_key}"
-  os_ssh_keypair     = "${openstack_compute_keypair_v2.keypair.name}"
+  os_ssh_keypair     = "${module.keypair.keypair_name}"
   ssh_bastion_host   = "${element(module.edge.public_ip_list,0)}"
   assign_floating_ip = "${var.edge_assign_floating_ip}"
   role               = ["worker"]
