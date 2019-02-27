@@ -11,6 +11,7 @@ ENV PLUGIN_KUBERNETES=1.5.0
 ENV PLUGIN_NULL=2.0.0
 ENV PLUGIN_LOCAL=1.1.0
 ENV PLUGIN_TEMPLATE=2.0.0
+ENV PLUGIN_RANDOM=2.0.0
 
 # PIP version
 ENV PIP=9.0.3
@@ -73,3 +74,8 @@ RUN curl "https://releases.hashicorp.com/terraform-provider-template/${PLUGIN_TE
     "terraform-provider-template_${PLUGIN_TEMPLATE}_linux_amd64.zip" && \
     unzip "terraform-provider-template_${PLUGIN_TEMPLATE}_linux_amd64.zip" -d /terraform_plugins/ && \
     rm -f "terraform-provider-template_${PLUGIN_TEMPLATE}_linux_amd64.zip"
+
+RUN curl "https://releases.hashicorp.com/terraform-provider-random/${PLUGIN_RANDOM}/terraform-provider-random_${PLUGIN_RANDOM}_linux_amd64.zip" > \
+    "terraform-provider-random_${PLUGIN_RANDOM}_linux_amd64.zip" && \
+    unzip "terraform-provider-random_${PLUGIN_RANDOM}_linux_amd64.zip" -d /terraform_plugins/ && \
+    rm -f "terraform-provider-random_${PLUGIN_RANDOM}_linux_amd64.zip"
