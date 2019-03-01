@@ -10,6 +10,8 @@ resource "openstack_compute_instance_v2" "instance" {
     name = "${var.network_name}"
   }
 
+  user_data = "${data.template_file.cloud_init.rendered}"
+
   config_drive = "true"
 
   security_groups = ["${var.secgroup_name}"]
