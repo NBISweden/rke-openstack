@@ -7,6 +7,11 @@ variable inventory_template {
   default = "inventory-template"
 }
 
+variable cloud_init_data {
+  description = "cloud-init data to pass onto all instances"
+  default = "cloud-init.tpl"
+}
+
 variable ssh_key {
   description = "Local path to SSH key"
 }
