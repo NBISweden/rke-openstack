@@ -47,6 +47,14 @@ locals {
   address_list = ["${split(",", var.assign_floating_ip ? join(",", openstack_compute_floatingip_v2.floating_ip.*.address) : join(",", openstack_compute_instance_v2.instance.*.network.0.fixed_ip_v4))}"]
 }
 
+data template_file "cloud_init" {
+  template = "${file("${path.module}/${var.cloud_init_data}")}"
+
+  vars {
+    boot_console = "centos"
+  }
+}
+
 data rke_node_parameter "node_mappings" {
   count = "${var.count}"
 
