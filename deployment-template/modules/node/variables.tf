@@ -59,10 +59,6 @@ variable labels {
   default     = {}
 }
 
-variable docker_version {
-  default = "Docker version (should be RKE-compliant: https://rancher.com/docs/rke/v0.1.x/en/os/#software)"
-}
-
 variable ssh_bastion_host {
   default = "Bastion SSH host (mandatory if assign_floating_ip is false)"
   default = ""
