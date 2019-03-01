@@ -213,14 +213,18 @@ def create_key_pair():
     return (public_key.decode('utf-8'), private_key.decode('utf-8'))
 
 def generate_vars_file():
+    tf_default_vars = dict()
     tf_vars = dict()
+
+    with open("variables.tf", 'r') as stream:
+        tf_default_vars = hcl.load(stream)
+
+    ssh_user = tf_default_vars['variable']['ssh_user']['default']
+    private_key = tf_default_vars['variable']['ssh_key']['default']
+    cluster_prefix = tf_default_vars['variable']['cluster_prefix']['default']
 
     with open("terraform.tfvars", 'r') as stream:
         tf_vars = hcl.load(stream)
-
-    ssh_user = 'ubuntu'
-    private_key = 'ssh_key'
-    cluster_prefix = 'rke'
 
     if 'cluster_prefix' in tf_vars:
         cluster_prefix = tf_vars['cluster_prefix']
