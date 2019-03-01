@@ -51,7 +51,8 @@ data template_file "cloud_init" {
   template = "${file("${path.module}/${var.cloud_init_data}")}"
 
   vars {
-    boot_console = "centos"
+    boot_console = "centos",
+    device_path = "/dev/vda"
   }
 }
 
