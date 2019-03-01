@@ -30,8 +30,6 @@
     groups: docker
     append: yes
 
-- name: Make sure docker is running
-  service:
-    state: started
-    enabled: true
-    name: docker
+- name: force systemd to reread configs
+  systemd:
+    daemon_reload: yes
