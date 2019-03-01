@@ -11,6 +11,9 @@
   when: docker_installed|success
   changed_when: false
 
+- debug:
+    var: docker_installed_version
+
 - name: install or upgrade docker
   shell: curl https://releases.rancher.com/install-docker/{{ docker_version }}.sh | sh
   when: not docker_installed|success or
