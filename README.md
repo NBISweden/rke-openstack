@@ -42,11 +42,11 @@ ssh_user="centos"
 # Network settings
 external_network_id=""
 floating_ip_pool=""
-# Image name (Tested with centos, ubuntu and rencheros so far)
+# Image name (Note that these names are only indicative)
 image_name="CentOS 7 - latest"
 #image_name="Ubuntu 16.04 LTS (Xenial Xerus) - latest"
 #image_name="rancheros-openstack"
-# Node counts and flavours
+# Node counts and flavours (Note that these flavours are only indicative)
 master_flavor_name="ssc.medium"
 master_count=1
 service_flavor_name="ssc.medium"
