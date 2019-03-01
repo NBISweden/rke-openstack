@@ -14,6 +14,10 @@ variable image_name {
   description = "Image to boot this node from"
 }
 
+variable cloud_init_data {
+  description = "cloud-init data to pass onto all instances"
+}
+
 variable ssh_user {
   description = "SSH user name"
 }
