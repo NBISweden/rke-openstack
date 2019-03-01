@@ -14,10 +14,12 @@ variable cloud_init_data {
 
 variable ssh_key {
   description = "Local path to SSH key"
+  default     = "ssh_key"
 }
 
 variable ssh_key_pub {
   description = "Local path to public SSH key"
+  default     = "ssh_key.pub"
 }
 
 variable ssh_user {
