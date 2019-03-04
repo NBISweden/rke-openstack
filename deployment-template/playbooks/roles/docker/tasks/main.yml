@@ -14,6 +14,14 @@
 - debug:
     var: docker_installed_version
 
+- name: download docker
+  get_url:
+    url: https://releases.rancher.com/install-docker/{{ docker_version }}.sh
+    dest: /tmp/{{ docker_version }}.sh
+    mode: 0770
+  when: not docker_installed|success or
+        not docker_installed_version.stdout|search(docker_version|string)
+
 - name: install or upgrade docker
   shell: curl https://releases.rancher.com/install-docker/{{ docker_version }}.sh | sh
   when: not docker_installed|success or
