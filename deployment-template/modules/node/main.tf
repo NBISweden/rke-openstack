@@ -15,18 +15,6 @@ resource "openstack_compute_instance_v2" "instance" {
   config_drive = "true"
 
   security_groups = ["${var.secgroup_name}"]
-
-  # Try to drain and delete node before downscaling
-  provisioner "local-exec" {
-    when       = "destroy"
-    on_failure = "continue" # when running terraform destroy this provisioner will fail
-
-    environment {
-      KUBECONFIG = "./kube_config_cluster.yml"
-    }
-
-    command = "kubectl drain ${var.name_prefix}-${format("%03d", count.index)} --delete-local-data --force --ignore-daemonsets && kubectl delete node ${var.name_prefix}-${format("%03d", count.index)}"
-  }
 }
 
 # Allocate floating IPs (if required)
