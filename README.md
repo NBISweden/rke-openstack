@@ -38,6 +38,7 @@ cluster_prefix="my-test"
 # Key pair settings
 ssh_key_pub="ssh_key.pub"
 ssh_key="ssh_key"
+# User for ssh connections. It varies among distros. (CentOS might work with cloud-user or centos)
 ssh_user="centos"
 # Network settings
 external_network_id=""
