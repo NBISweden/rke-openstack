@@ -42,6 +42,7 @@ resource rke_cluster "cluster" {
   }
 
   ignore_docker_version = "${var.ignore_docker_version}"
+  kubernetes_version = "${var.kubernetes_version}"
 
   # Workaround: make sure resources are created and deleted in the right order
   provisioner "local-exec" {
@@ -114,17 +115,5 @@ resource "kubernetes_cluster_role_binding" "tiller" {
 
     api_group = ""
     namespace = "kube-system"
-  }
-}
-
-resource null_resource "tiller" {
-  depends_on = ["kubernetes_cluster_role_binding.tiller"]
-
-  provisioner "local-exec" {
-    environment {
-      KUBECONFIG = "${path.root}/kube_config_cluster.yml"
-    }
-
-    command = "helm init --service-account terraform-tiller --wait"
   }
 }

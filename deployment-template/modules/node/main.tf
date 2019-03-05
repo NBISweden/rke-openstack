@@ -61,7 +61,7 @@ resource null_resource "prepare_nodes" {
     }
 
     inline = [
-      "curl releases.rancher.com/install-docker/${var.docker_version}.sh | bash",
+      "wget -O - releases.rancher.com/install-docker/${var.docker_version}.sh | bash",
       "sudo usermod -a -G docker ${var.ssh_user}",
     ]
   }

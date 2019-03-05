@@ -7,4 +7,5 @@ output kube_config_cluster {
 output custer_yml {
   description = "RKE cluster.yml file"
   value       = "${module.rke.custer_yml}"
+  sensitive   = true
 }

@@ -24,6 +24,10 @@ variable ignore_docker_version {
   description = "If true RKE won't check Docker version on images"
 }
 
+variable kubernetes_version {
+  description = "Kubernetes version (should be RKE v0.1.x compliant)"
+}
+
 variable write_kube_config_cluster {
   description = "If true kube_config_cluster.yml will be written locally"
 }

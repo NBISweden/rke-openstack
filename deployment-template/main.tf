@@ -110,6 +110,7 @@ module "rke" {
   ssh_key                   = "${var.ssh_key}"
   kubeapi_sans_list         = "${module.edge.public_ip_list}"
   ignore_docker_version     = "${var.ignore_docker_version}"
+  kubernetes_version        = "${var.kubernetes_version}"
   write_kube_config_cluster = "${var.write_kube_config_cluster}"
   write_cluster_yaml        = "${var.write_cluster_yaml}"
   os_username               = "${var.os_username}"
