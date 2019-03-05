@@ -200,7 +200,7 @@ def create_key_pair():
     key = rsa.generate_private_key(
         backend=crypto_default_backend(),
         public_exponent=65537,
-        key_size=2048
+        key_size=4096
     )
     private_key = key.private_bytes(
         crypto_serialization.Encoding.PEM,
