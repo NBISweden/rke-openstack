@@ -9,10 +9,10 @@ setup(
     description='REGA CLI for provisioning RKE clusters',
     author='Jon Ander Novella',
     install_requires=[
-        'click>=6.7',
+        'click==7.0',
         'pyhcl==0.3.11',
-        'click-plugins',
-        'docker==2.0.0',
+        'click-plugins==1.0.4',
+        'docker==3.7.0',
         'cryptography==2.5.0'
     ],
     entry_points='''
