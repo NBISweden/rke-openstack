@@ -10,21 +10,11 @@ resource "openstack_compute_instance_v2" "instance" {
     name = "${var.network_name}"
   }
 
+  user_data = "${data.template_file.cloud_init.rendered}"
+
   config_drive = "true"
 
   security_groups = ["${var.secgroup_name}"]
-
-  # Try to drain and delete node before downscaling
-  provisioner "local-exec" {
-    when       = "destroy"
-    on_failure = "continue" # when running terraform destroy this provisioner will fail
-
-    environment {
-      KUBECONFIG = "./kube_config_cluster.yml"
-    }
-
-    command = "kubectl drain ${var.name_prefix}-${format("%03d", count.index)} --delete-local-data --force --ignore-daemonsets && kubectl delete node ${var.name_prefix}-${format("%03d", count.index)}"
-  }
 }
 
 # Allocate floating IPs (if required)
@@ -40,37 +30,18 @@ resource "openstack_compute_floatingip_associate_v2" "associate_floating_ip" {
   instance_id = "${element(openstack_compute_instance_v2.instance.*.id, count.index)}"
 }
 
-# Prepare nodes for RKE
-resource null_resource "prepare_nodes" {
-  count = "${var.count}"
-
-  triggers {
-    instance_id = "${element(openstack_compute_instance_v2.instance.*.id, count.index)}"
-  }
-
-  provisioner "remote-exec" {
-    connection {
-      # External
-      bastion_host     = "${var.ssh_bastion_host}"
-      bastion_host_key = "${file(var.ssh_key)}"
-
-      # Internal
-      host        = "${element(openstack_compute_instance_v2.instance.*.network.0.fixed_ip_v4, count.index)}"
-      user        = "${var.ssh_user}"
-      private_key = "${file(var.ssh_key)}"
-    }
-
-    inline = [
-      "wget -O - releases.rancher.com/install-docker/${var.docker_version}.sh | bash",
-      "sudo usermod -a -G docker ${var.ssh_user}",
-    ]
-  }
-}
-
-# RKE node mappings
 locals {
   # Workaround for list not supported in conditionals (https://github.com/hashicorp/terraform/issues/12453)
   address_list = ["${split(",", var.assign_floating_ip ? join(",", openstack_compute_floatingip_v2.floating_ip.*.address) : join(",", openstack_compute_instance_v2.instance.*.network.0.fixed_ip_v4))}"]
+}
+
+data template_file "cloud_init" {
+  template = "${file("${path.module}/${var.cloud_init_data}")}"
+
+  vars {
+    boot_console = "centos",
+    device_path = "/dev/vda"
+  }
 }
 
 data rke_node_parameter "node_mappings" {

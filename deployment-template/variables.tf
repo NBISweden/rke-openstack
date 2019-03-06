@@ -3,12 +3,23 @@ variable cluster_prefix {
   default     = "rke"
 }
 
+variable inventory_template {
+  default = "inventory-template"
+}
+
+variable cloud_init_data {
+  description = "cloud-init data to pass onto all instances"
+  default = "cloud-init.tpl"
+}
+
 variable ssh_key {
   description = "Local path to SSH key"
+  default     = "ssh_key"
 }
 
 variable ssh_key_pub {
   description = "Local path to public SSH key"
+  default     = "ssh_key.pub"
 }
 
 variable ssh_user {
@@ -58,11 +69,6 @@ variable edge_count {
 variable ignore_docker_version {
   description = "If true RKE won't check Docker version on images"
   default     = false
-}
-
-variable docker_version {
-  description = "Docker version (should be RKE v0.1.x compliant: https://rancher.com/docs/rke/v0.1.x/en/os/#software)"
-  default     = "17.03"
 }
 
 variable kubernetes_version {

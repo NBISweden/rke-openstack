@@ -2,13 +2,16 @@ FROM ubuntu:bionic-20190204
 
 # Terraform and Openstack client versions
 ENV TERRAFORM_VERSION=0.11.11
+ENV ANSIBLE_VERSION=2.7.8
 ENV OPENSTACKCLIENT_VERSION=3.17.0
 # Terraform plugin versions
-ENV PLUGIN_OPENSTACK=1.15.1
-ENV PLUGIN_RKE=0.7.1
+ENV PLUGIN_OPENSTACK=1.16.0
+ENV PLUGIN_RKE=0.8.0
 ENV PLUGIN_KUBERNETES=1.5.0
 ENV PLUGIN_NULL=2.0.0
 ENV PLUGIN_LOCAL=1.1.0
+ENV PLUGIN_TEMPLATE=2.0.0
+ENV PLUGIN_RANDOM=2.0.0
 
 # PIP version
 ENV PIP=9.0.3
@@ -27,7 +30,8 @@ RUN apt update -y && \
       unzip && \
     pip install --no-cache-dir --upgrade pip=="${PIP}" && \
     pip install --no-cache-dir \
-      python-openstackclient=="$OPENSTACKCLIENT_VERSION" && \
+      python-openstackclient=="$OPENSTACKCLIENT_VERSION" \
+      ansible=="$ANSIBLE_VERSION" && \
     rm -rf /usr/lib/gcc && \
     rm -rf /usr/share/man && \
     apt clean && \
@@ -65,3 +69,13 @@ RUN curl -sL "https://github.com/yamamoto-febc/terraform-provider-rke/releases/d
     "terraform-provider-rke_${PLUGIN_RKE}_linux_amd64.zip" && \
     unzip "terraform-provider-rke_${PLUGIN_RKE}_linux_amd64.zip" -d /terraform_plugins/ && \
     rm -f "terraform-provider-rke_${PLUGIN_RKE}_linux_amd64.zip"
+
+RUN curl "https://releases.hashicorp.com/terraform-provider-template/${PLUGIN_TEMPLATE}/terraform-provider-template_${PLUGIN_TEMPLATE}_linux_amd64.zip" > \
+    "terraform-provider-template_${PLUGIN_TEMPLATE}_linux_amd64.zip" && \
+    unzip "terraform-provider-template_${PLUGIN_TEMPLATE}_linux_amd64.zip" -d /terraform_plugins/ && \
+    rm -f "terraform-provider-template_${PLUGIN_TEMPLATE}_linux_amd64.zip"
+
+RUN curl "https://releases.hashicorp.com/terraform-provider-random/${PLUGIN_RANDOM}/terraform-provider-random_${PLUGIN_RANDOM}_linux_amd64.zip" > \
+    "terraform-provider-random_${PLUGIN_RANDOM}_linux_amd64.zip" && \
+    unzip "terraform-provider-random_${PLUGIN_RANDOM}_linux_amd64.zip" -d /terraform_plugins/ && \
+    rm -f "terraform-provider-random_${PLUGIN_RANDOM}_linux_amd64.zip"

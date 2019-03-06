@@ -14,6 +14,10 @@ variable image_name {
   description = "Image to boot this node from"
 }
 
+variable cloud_init_data {
+  description = "cloud-init data to pass onto all instances"
+}
+
 variable ssh_user {
   description = "SSH user name"
 }
@@ -53,10 +57,6 @@ variable labels {
   type        = "map"
   description = "Map of Kubernetes labels for this node"
   default     = {}
-}
-
-variable docker_version {
-  default = "Docker version (should be RKE-compliant: https://rancher.com/docs/rke/v0.1.x/en/os/#software)"
 }
 
 variable ssh_bastion_host {

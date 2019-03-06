@@ -38,12 +38,16 @@ cluster_prefix="my-test"
 # Key pair settings
 ssh_key_pub="ssh_key.pub"
 ssh_key="ssh_key"
+# User for ssh connections. It varies among distributions. (CentOS might work with cloud-user or centos)
+ssh_user="centos"
 # Network settings
 external_network_id=""
 floating_ip_pool=""
-# Image name
-image_name="Ubuntu 16.04 LTS (Xenial Xerus) - latest"
-# Node counts and flavours
+# Image name (Note that these names are only indicative)
+image_name="CentOS 7 - latest"
+#image_name="Ubuntu 16.04 LTS (Xenial Xerus) - latest"
+#image_name="rancheros-openstack"
+# Node counts and flavours (Note that these flavours are only indicative)
 master_flavor_name="ssc.medium"
 master_count=1
 service_flavor_name="ssc.medium"
@@ -59,9 +63,9 @@ os_tenant_name=""
 os_domain_name=""
 ```
 
-To fire up the infrastructure execute:
+To fire up the infrastructure execute the `apply` command with the desired modules. By default only the infra modules will be created.
 ```
-rega apply
+rega apply --modules=[infra,k8s,all]
 ```
 
 Once the deployment is done, you can configure `kubectl` and explore the cluster:
@@ -71,12 +75,21 @@ export KUBECONFIG="$PWD/kube_config_cluster.yml"
 kubectl get nodes
 ```
 
-## Release resources
 
-You can release the resources by running:
+## Provisioning with Ansible
+
+You can run Ansible playbooks against the virtual machines by running the `provision` command. It expects the path of the playbook under the `playbooks` folder. For example:
 
 ```
-rega destroy
+rega provision setup
+```
+
+## Release resources
+
+You can release the resources by running `destroy` with the desired modules. By default only the infra modules will be released.
+
+```
+rega destroy --modules=[infra,k8s,all]
 ```
 
 ## Rancher Server

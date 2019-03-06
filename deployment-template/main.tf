@@ -1,7 +1,8 @@
-# Add public key
-resource "openstack_compute_keypair_v2" "keypair" {
-  name       = "${var.cluster_prefix}-keypair"
-  public_key = "${file(var.ssh_key_pub)}"
+# Upload SSH key to OpenStack
+module "keypair" {
+  source      = "modules/keypair"
+  public_ssh_key  = "${var.ssh_key_pub}"
+  key_prefix = "${var.cluster_prefix}"
 }
 
 # Create security group
@@ -26,14 +27,14 @@ module "master" {
   name_prefix        = "${var.cluster_prefix}-master"
   flavor_name        = "${var.master_flavor_name}"
   image_name         = "${var.image_name}"
+  cloud_init_data    = "${var.cloud_init_data}"
   network_name       = "${module.network.network_name}"
   secgroup_name      = "${module.secgroup.secgroup_name}"
   floating_ip_pool   = "${var.floating_ip_pool}"
   ssh_user           = "${var.ssh_user}"
   ssh_key            = "${var.ssh_key}"
-  os_ssh_keypair     = "${openstack_compute_keypair_v2.keypair.name}"
+  os_ssh_keypair     = "${module.keypair.keypair_name}"
   ssh_bastion_host   = "${element(module.edge.public_ip_list,0)}"
-  docker_version     = "${var.docker_version}"
   assign_floating_ip = "${var.master_assign_floating_ip}"
   role               = ["controlplane", "etcd"]
 
@@ -49,14 +50,14 @@ module "service" {
   name_prefix        = "${var.cluster_prefix}-service"
   flavor_name        = "${var.service_flavor_name}"
   image_name         = "${var.image_name}"
+  cloud_init_data    = "${var.cloud_init_data}"
   network_name       = "${module.network.network_name}"
   secgroup_name      = "${module.secgroup.secgroup_name}"
   floating_ip_pool   = "${var.floating_ip_pool}"
   ssh_user           = "${var.ssh_user}"
   ssh_key            = "${var.ssh_key}"
-  os_ssh_keypair     = "${openstack_compute_keypair_v2.keypair.name}"
+  os_ssh_keypair     = "${module.keypair.keypair_name}"
   ssh_bastion_host   = "${element(module.edge.public_ip_list,0)}"
-  docker_version     = "${var.docker_version}"
   assign_floating_ip = "${var.service_assign_floating_ip}"
   role               = ["worker"]
 
@@ -72,14 +73,14 @@ module "edge" {
   name_prefix        = "${var.cluster_prefix}-edge"
   flavor_name        = "${var.edge_flavor_name}"
   image_name         = "${var.image_name}"
+  cloud_init_data    = "${var.cloud_init_data}"
   network_name       = "${module.network.network_name}"
   secgroup_name      = "${module.secgroup.secgroup_name}"
   floating_ip_pool   = "${var.floating_ip_pool}"
   ssh_user           = "${var.ssh_user}"
   ssh_key            = "${var.ssh_key}"
-  os_ssh_keypair     = "${openstack_compute_keypair_v2.keypair.name}"
+  os_ssh_keypair     = "${module.keypair.keypair_name}"
   ssh_bastion_host   = "${element(module.edge.public_ip_list,0)}"
-  docker_version     = "${var.docker_version}"
   assign_floating_ip = "${var.edge_assign_floating_ip}"
   role               = ["worker"]
 
@@ -91,9 +92,6 @@ module "edge" {
 # Compute dynamic dependencies for RKE provisioning step
 locals {
   rke_cluster_deps = [
-    "${join(",",module.master.prepare_nodes_id_list)}",       # Master stuff ...
-    "${join(",",module.service.prepare_nodes_id_list)}",      # Service stuff ...
-    "${join(",",module.edge.prepare_nodes_id_list)}",         # Edge stuff ...
     "${join(",",module.edge.associate_floating_ip_id_list)}",
     "${join(",",module.secgroup.rule_id_list)}",              # Other stuff ...
     "${module.network.interface_id}",
@@ -119,4 +117,24 @@ module "rke" {
   os_tenant_id              = "${var.os_tenant_id}"
   os_tenant_name            = "${var.os_tenant_name}"
   os_domain_name            = "${var.os_domain_name}"
+}
+
+# Generate Ansible inventory
+module "inventory" {
+  source                 = "ansible-inventory"
+  cluster_prefix         = "${var.cluster_prefix}"
+  ssh_user               = "${var.ssh_user}"
+  master_count           = "${var.master_count}"
+  master_hostnames       = "${module.master.hostnames}"
+  master_public_ip       = "${module.master.access_ip_list}"
+  master_private_ip      = "${module.master.private_ip_list}"
+  edge_count             = "${var.edge_count}"
+  edge_hostnames         = "${module.edge.hostnames}"
+  edge_public_ip         = "${module.edge.access_ip_list}"
+  edge_private_ip        = "${module.edge.private_ip_list}"
+  service_count          = "${var.service_count}"
+  service_hostnames      = "${module.service.hostnames}"
+  service_public_ip      = "${module.service.access_ip_list}"
+  service_private_ip     = "${module.service.private_ip_list}"
+  inventory_template     = "${var.inventory_template}"
 }
