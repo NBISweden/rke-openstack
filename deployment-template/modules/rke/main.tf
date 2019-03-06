@@ -64,7 +64,7 @@ resource local_file "kube_config_cluster" {
   content = "${replace(rke_cluster.cluster.kube_config_yaml, local.api_access_regex, local.api_access)}"
 }
 
-resource "local_file" "custer_yml" {
+resource "local_file" "cluster_yml" {
   count    = "${var.write_cluster_yaml ? 1 : 0}"
   filename = "${path.root}/cluster.yml"
   content  = "${rke_cluster.cluster.rke_cluster_yaml}"
