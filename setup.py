@@ -13,7 +13,9 @@ setup(
         'pyhcl==0.3.11',
         'click-plugins==1.0.4',
         'docker==3.7.0',
-        'cryptography==2.5.0'
+        'cryptography==2.5.0',
+        'flake8==3.7.7',
+        'PyYAML==5.1'
     ],
     entry_points='''
         [console_scripts]
