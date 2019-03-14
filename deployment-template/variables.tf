@@ -125,14 +125,14 @@ variable os_auth_url {
   description = "Openstack auth url"
 }
 
-variable os_tenant_id {
+variable os_project_id {
   description = "Openstack tenant/project id"
 }
 
-variable os_tenant_name {
+variable os_project_name {
   description = "Openstack tenant/project name"
 }
 
-variable os_domain_name {
+variable os_user_domain_name {
   description = "Openstack domain name"
 }
