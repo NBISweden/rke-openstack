@@ -114,9 +114,9 @@ module "rke" {
   os_username               = "${var.os_username}"
   os_password               = "${var.os_password}"
   os_auth_url               = "${var.os_auth_url}"
-  os_tenant_id              = "${var.os_tenant_id}"
-  os_tenant_name            = "${var.os_tenant_name}"
-  os_domain_name            = "${var.os_domain_name}"
+  os_project_id             = "${var.os_project_id}"
+  os_project_name           = "${var.os_project_name}"
+  os_user_domain_name       = "${var.os_user_domain_name}"
 }
 
 # Generate Ansible inventory

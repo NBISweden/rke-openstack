@@ -43,7 +43,7 @@ def version(image):
 @click.option('-I', '--image', default=DEFAULT_IMAGE,
               envvar='REGA_PROVISIONER_IMG',
               help='Docker image used for provisioning')
-@click.option('-M', '--modules', default='infra',
+@click.option('-M', '--modules', default='all',
               type=click.Choice(['infra', 'k8s', 'all']),
               help='Options are: "infra", "k8s" and "all"')
 def apply(image,modules):
@@ -56,7 +56,7 @@ def apply(image,modules):
 @click.option('-I', '--image', default=DEFAULT_IMAGE,
               envvar='REGA_PROVISIONER_IMG',
               help='Docker image used for provisioning')
-@click.option('-M', '--modules', default='infra',
+@click.option('-M', '--modules', default='all',
               type=click.Choice(['infra', 'k8s', 'all']),
               help='Options are: "infra", "k8s" and "all"')
 def destroy(image,modules):
@@ -251,3 +251,4 @@ def filter_vars(seq):
             yield key + '=' + val
         elif key.startswith('OS_'):
             yield key + '=' + val
+            yield 'TF_VAR_' + key.lower() + '=' + val

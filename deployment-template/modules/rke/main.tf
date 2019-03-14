@@ -7,9 +7,9 @@ resource rke_cluster "cluster" {
           username = "${var.os_username}"
           password = "${var.os_password}"
           auth_url = "${var.os_auth_url}"
-          tenant_id = "${var.os_tenant_id}"
-          tenant_name = "${var.os_tenant_name}"
-          domain_name = "${var.os_domain_name}"
+          tenant_id = "${var.os_project_id}"
+          tenant_name = "${var.os_project_name}"
+          domain_name = "${var.os_user_domain_name}"
         }
         block_storage = {
           bs_version = "auto"
