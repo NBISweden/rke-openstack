@@ -5,6 +5,7 @@ import os
 import click
 import docker
 import logging
+import pkg_resources
 from distutils import dir_util
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -36,8 +37,9 @@ def init(dir, image):
 @click.option('-I', '--image', default=DEFAULT_IMAGE,
               envvar='REGA_PROVISIONER_IMG')
 def version(image):
-    """Outputs the version of the provisioning container."""
-    logging.info("""REGA provisioner version is {}""".format(image))
+    """Outputs the version of the provisioning container and the CLI."""
+    print("""REGA provisioner version: {}""".format(image))
+    print("""REGA CLI version: {}""".format(pkg_resources.get_distribution("rega").version))
 
 
 @main.command('apply')
