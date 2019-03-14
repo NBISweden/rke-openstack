@@ -39,14 +39,12 @@ cluster_prefix="my-test"
 ssh_key_pub="ssh_key.pub"
 ssh_key="ssh_key"
 # User for ssh connections. It varies among distributions. (CentOS might work with cloud-user or centos)
-ssh_user="centos"
+ssh_user="<ssh-user>"
 # Network settings
 external_network_id=""
 floating_ip_pool=""
-# Image name (Note that these names are only indicative)
-image_name="CentOS 7 - latest"
-#image_name="Ubuntu 16.04 LTS (Xenial Xerus) - latest"
-#image_name="rancheros-openstack"
+# Image name (RKE runs on almost any Linux OS)
+image_name="<image-name>"
 # Node counts and flavours (Note that these flavours are only indicative)
 master_flavor_name="ssc.medium"
 master_count=1
@@ -54,16 +52,9 @@ service_flavor_name="ssc.medium"
 service_count=2
 edge_flavor_name="ssc.medium"
 edge_count=1
-# Openstack credentials for provisioning Cinder volumes
-os_username=""
-os_password=""
-os_auth_url=""
-os_tenant_id=""
-os_tenant_name=""
-os_domain_name=""
 ```
 
-To fire up the infrastructure execute the `apply` command with the desired modules. By default only the infra modules will be created.
+To fire up the infrastructure execute the `apply` command with the desired modules. By default all modules will be created.
 ```
 rega apply --modules=[infra,k8s,all]
 ```
@@ -84,9 +75,9 @@ You can run Ansible playbooks against the virtual machines by running the `provi
 rega provision setup
 ```
 
-## Release resources
+## Releasing resources
 
-You can release the resources by running `destroy` with the desired modules. By default only the infra modules will be released.
+You can release the resources by running `destroy` with the desired modules. By default all modules will be deleted.
 
 ```
 rega destroy --modules=[infra,k8s,all]
