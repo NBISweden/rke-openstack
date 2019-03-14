@@ -35,4 +35,4 @@ clean:
 
 .PHONY: lint
 lint:
-	flake8 --ignore E226,D203,D212,D213,D404,D100,D104 rega.py setup.py
+	flake8 --ignore E226,E501,D203,D212,D213,D404,D100,D104 rega.py setup.py
