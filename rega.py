@@ -11,8 +11,8 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 
 logging.basicConfig(level=logging.INFO)
-
 DEFAULT_IMAGE = 'novella/rega:latest'
+
 
 @click.group()
 def main():
@@ -31,6 +31,7 @@ def init(dir, image):
     check_init_dir()
     create_deployment(dir)
 
+
 @main.command('version')
 @click.option('-I', '--image', default=DEFAULT_IMAGE,
               envvar='REGA_PROVISIONER_IMG')
@@ -46,11 +47,12 @@ def version(image):
 @click.option('-M', '--modules', default='all',
               type=click.Choice(['infra', 'k8s', 'all']),
               help='Options are: "infra", "k8s" and "all"')
-def apply(image,modules):
+def apply(image, modules):
     """Applies the Terraform plan to spawn the desired resources."""
     logging.info("""Applying setup using mode {}""".format(modules))
     check_environment()
     apply_tf_modules(modules, image)
+
 
 @main.command('destroy')
 @click.option('-I', '--image', default=DEFAULT_IMAGE,
@@ -59,7 +61,7 @@ def apply(image,modules):
 @click.option('-M', '--modules', default='all',
               type=click.Choice(['infra', 'k8s', 'all']),
               help='Options are: "infra", "k8s" and "all"')
-def destroy(image,modules):
+def destroy(image, modules):
     """Releases the previously requested resources."""
     logging.info("""Destroying the infrastructure using mode {}""".format(modules))
     check_environment()
@@ -87,15 +89,15 @@ def terraform(extra_args, image):
 def openstack(extra_args, image):
     """Executes the openstack command in the provisioner container with the provided args."""
     logging.info("""Running openstack with arguments: {}""".format(extra_args))
-
     run_in_container(['openstack {}'.format(extra_args)], image)
+
 
 @main.command('provision')
 @click.argument('extra_args')
 @click.option('-I', '--image', default=DEFAULT_IMAGE,
               envvar='REGA_PROVISIONER_IMG',
               help='Docker image used for provisioning')
-def provision(image,extra_args):
+def provision(image, extra_args):
     """Executes the Ansible playbook specified as an argument."""
     check_environment()
     generate_vars_file()
@@ -121,7 +123,7 @@ def run_in_container(commands, image):
         detach=True
     )
 
-    for line in runner.logs(stream=True,follow=True):
+    for line in runner.logs(stream=True, follow=True):
         print(line.decode())
 
 
@@ -162,7 +164,7 @@ def create_deployment(dir):
     """Copy relevant files to new folder."""
     if os.path.exists('deployment-template'):
         dir_util.mkpath(dir)
-        dir_util.copy_tree('deployment-template/','./{}/'.format(dir))
+        dir_util.copy_tree('deployment-template/', './{}/'.format(dir))
     else:
         sys.stderr.write("Error: deployment-template folder not found. Are you in the right directory?\n")
         sys.exit(1)
@@ -212,6 +214,7 @@ def create_key_pair():
     )
     return (public_key.decode('utf-8'), private_key.decode('utf-8'))
 
+
 def generate_vars_file():
     tf_default_vars = dict()
     tf_vars = dict()
@@ -238,12 +241,13 @@ def generate_vars_file():
         "edge_ip": "{{ hostvars.get(edge_host)[\"ansible_host\"] }}",
         "ssh_user": ssh_user,
         "private_key": private_key
-        }
+    }
 
     vars_file = 'playbooks/group_vars/all'
 
     with open(vars_file, 'w') as fh:
         fh.write(yaml.dump(data, default_flow_style=False))
+
 
 def filter_vars(seq):
     for key, val in seq.items():
