@@ -251,3 +251,4 @@ def filter_vars(seq):
             yield key + '=' + val
         elif key.startswith('OS_'):
             yield key + '=' + val
+            yield 'TF_VAR_' + key.lower() + '=' + val
