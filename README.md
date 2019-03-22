@@ -83,12 +83,19 @@ You can release the resources by running `destroy` with the desired modules. By 
 rega destroy --modules=[infra,k8s,all]
 ```
 
+## Starting Tiller
+
+Prior to installing Helm charts, you need to have Tiller up and running in your cluster:
+
+```
+helm init --service-account terraform-tiller
+```
+
 ## Rancher Server
 
 In order to manage the cluster from the Rancher UI, you can install `cert-manager` and the `Rancher server` using a Helm chart. After initialising Helm, you need to add the Helm chart repository that contains charts to install Rancher:
 
 ```
-helm init --service-account terraform-tiller
 helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
 ```
 
