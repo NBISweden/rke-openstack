@@ -48,6 +48,21 @@ resource rke_cluster "cluster" {
   provisioner "local-exec" {
     command = "# ${join(",",var.rke_cluster_deps)}"
   }
+
+  addons = <<EOL
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: cinder
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: kubernetes.io/cinder
+reclaimPolicy: Delete
+parameters:
+  availability: nova
+EOL
+
 }
 
 # Write YAML configs
@@ -77,17 +92,6 @@ provider "kubernetes" {
   client_certificate     = "${rke_cluster.cluster.client_cert}"
   client_key             = "${rke_cluster.cluster.client_key}"
   cluster_ca_certificate = "${rke_cluster.cluster.ca_crt}"
-}
-
-resource "kubernetes_storage_class" "cinder" {
-  metadata {
-    name = "cinder"
-  }
-  storage_provisioner = "kubernetes.io/cinder"
-  reclaim_policy = "Delete"
-  parameters {
-    availability = "nova"
-  }
 }
 
 resource "kubernetes_service_account" "tiller" {
