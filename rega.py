@@ -12,7 +12,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 
 logging.basicConfig(level=logging.INFO)
-DEFAULT_IMAGE = 'novella/rega:latest'
+DEFAULT_IMAGE = 'novella/rega:0.10'
 
 
 @click.group()
