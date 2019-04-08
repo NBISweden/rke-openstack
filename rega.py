@@ -162,12 +162,12 @@ def get_tf_modules(target):
 
 
 def terraform_apply(modules, image):
-    run_in_container(['terraform init -plugin-dir=/terraform_plugins',
-                      'terraform apply -auto-approve {}'.format(modules)], image)
+    return run_in_container(['terraform init -plugin-dir=/terraform_plugins',
+                             'terraform apply -auto-approve {}'.format(modules)], image)
 
 
 def run_ansible(playbook, image):
-    run_in_container(['ansible-playbook playbooks/{}.yml'.format(playbook)], image)
+    return run_in_container(['ansible-playbook playbooks/{}.yml'.format(playbook)], image)
 
 
 def create_deployment(dir):
