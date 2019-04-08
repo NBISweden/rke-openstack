@@ -3,15 +3,26 @@
   pre_tasks:
     - name: Check if python is installed
       raw: which python
-      register: python_installed
+      retries: 3
+      delay: 20
+      register: python_present
       ignore_errors: true
       changed_when: false
 
-    - name: Installing python
-      when: not python_installed|success
+    - name: Updating package lists
+      when: not python_present|success
       become: True
-      raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
-      ignore_errors: true
+      raw: apt-get -y update
+      retries: 3
+      delay: 20
+      changed_when: false
+
+    - name: Installing python
+      when: not python_present|success
+      become: True
+      raw: apt-get -y install python-minimal
+      retries: 3
+      delay: 20
       changed_when: false
 
 - hosts: edge,service,master
