@@ -128,6 +128,12 @@ def run_in_container(commands, image):
     for line in runner.logs(stream=True, follow=True):
         print(line.decode())
 
+    result = runner.wait()
+    exit_code = result.get('StatusCode', 1)
+    runner.remove()
+
+    return exit_code
+
 
 def apply_tf_modules(target, image):
     if target == 'infra' or target == 'k8s':
