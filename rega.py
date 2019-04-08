@@ -139,10 +139,12 @@ def apply_tf_modules(target, image):
     if target == 'infra' or target == 'k8s':
         terraform_apply(get_tf_modules(target), image)
     elif target == 'all':
-        terraform_apply(get_tf_modules('infra'), image)
-        generate_vars_file()
-        run_ansible('setup', image)
-        terraform_apply(get_tf_modules('k8s'), image)
+        infra_exit_code = terraform_apply(get_tf_modules('infra'), image)
+        if infra_exit_code == 0:
+            generate_vars_file()
+            ansible_exit_code = run_ansible('setup', image)
+            if ansible_exit_code == 0:
+                terraform_apply(get_tf_modules('k8s'), image)
 
 
 def get_tf_modules(target):
