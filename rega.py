@@ -47,8 +47,8 @@ def version(image):
               envvar='REGA_PROVISIONER_IMG',
               help='Docker image used for provisioning')
 @click.option('-M', '--modules', default='all',
-              type=click.Choice(['infra', 'k8s', 'all']),
-              help='Options are: "infra", "k8s" and "all"')
+              type=click.Choice(['infra', 'all']),
+              help='Options are: "infra" and "all"')
 def apply(image, modules):
     """Applies the Terraform plan to spawn the desired resources."""
     logging.info("""Applying setup using mode {}""".format(modules))
@@ -136,7 +136,7 @@ def run_in_container(commands, image):
 
 
 def apply_tf_modules(target, image):
-    if target == 'infra' or target == 'k8s':
+    if target == 'infra':
         terraform_apply(get_tf_modules(target), image)
     elif target == 'all':
         infra_exit_code = terraform_apply(get_tf_modules('infra'), image)
