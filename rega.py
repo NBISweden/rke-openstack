@@ -128,15 +128,23 @@ def run_in_container(commands, image):
     for line in runner.logs(stream=True, follow=True):
         print(line.decode())
 
+    result = runner.wait()
+    exit_code = result.get('StatusCode', 1)
+    runner.remove()
+
+    return exit_code
+
 
 def apply_tf_modules(target, image):
     if target == 'infra' or target == 'k8s':
         terraform_apply(get_tf_modules(target), image)
     elif target == 'all':
-        terraform_apply(get_tf_modules('infra'), image)
-        generate_vars_file()
-        run_ansible('setup', image)
-        terraform_apply(get_tf_modules('k8s'), image)
+        infra_exit_code = terraform_apply(get_tf_modules('infra'), image)
+        if infra_exit_code == 0:
+            generate_vars_file()
+            ansible_exit_code = run_ansible('setup', image)
+            if ansible_exit_code == 0:
+                terraform_apply(get_tf_modules('k8s'), image)
 
 
 def get_tf_modules(target):
@@ -154,12 +162,12 @@ def get_tf_modules(target):
 
 
 def terraform_apply(modules, image):
-    run_in_container(['terraform init -plugin-dir=/terraform_plugins',
-                      'terraform apply -auto-approve {}'.format(modules)], image)
+    return run_in_container(['terraform init -plugin-dir=/terraform_plugins',
+                             'terraform apply -auto-approve {}'.format(modules)], image)
 
 
 def run_ansible(playbook, image):
-    run_in_container(['ansible-playbook playbooks/{}.yml'.format(playbook)], image)
+    return run_in_container(['ansible-playbook playbooks/{}.yml'.format(playbook)], image)
 
 
 def create_deployment(dir):
