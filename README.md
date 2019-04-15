@@ -56,7 +56,7 @@ edge_count=1
 
 To fire up the infrastructure execute the `apply` command with the desired modules. By default all modules will be created.
 ```
-rega apply --modules=[infra,k8s,all]
+rega apply --modules=[infra,all]
 ```
 
 Once the deployment is done, you can configure `kubectl` and explore the cluster:
