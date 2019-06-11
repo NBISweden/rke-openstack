@@ -1,7 +1,7 @@
 FROM ubuntu:bionic-20190204
 
 # Terraform and Openstack client versions
-ENV TERRAFORM_VERSION=0.12.1
+ENV TERRAFORM_VERSION=0.11.14
 ENV ANSIBLE_VERSION=2.8.1
 ENV OPENSTACKCLIENT_VERSION=3.17.0
 # Terraform plugin versions
