@@ -12,7 +12,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 
 logging.basicConfig(level=logging.INFO)
-DEFAULT_IMAGE = 'nbisweden/rega:0.1'
+DEFAULT_IMAGE = 'nbisweden/rega:0.2'
 
 
 @click.group()
@@ -31,6 +31,7 @@ def init(dir, image):
     client.images.pull(image)
     check_init_dir()
     create_deployment(dir)
+    logging.info("""Environment initialised. Navigate to the {} folder and create a terraform.tfvars file with your configuration""".format(dir))
 
 
 @main.command('version')
