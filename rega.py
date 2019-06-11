@@ -31,6 +31,7 @@ def init(dir, image):
     client.images.pull(image)
     check_init_dir()
     create_deployment(dir)
+    logging.info("""Environment initialised. Navigate to the {} folder and create a terraform.tfvars with your configuration""".format(dir))
 
 
 @main.command('version')
