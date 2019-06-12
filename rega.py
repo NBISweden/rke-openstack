@@ -142,16 +142,35 @@ def run_in_container(commands, image):
     return exit_code
 
 
-def apply_tf_modules(target, image, backend):
+def render(template_path, data, extensions=None, strict=False):
+
+    if extensions is None:
+        extensions = []
+    env = Environment(
+        loader=FileSystemLoader(os.path.dirname(template_path)),
+        extensions=extensions,
+        keep_trailing_newline=True,
+    )
+    if strict:
+        from jinja2 import StrictUndefined
+        env.undefined = StrictUndefined
+
+    env.globals['environ'] = os.environ.get
+
+    output = env.get_template(os.path.basename(template_path)).render(data)
+    return output.encode('utf-8')
+
+
+def apply_tf_modules(target, image, backend, config):
     if target == 'infra':
-        terraform_apply(get_tf_modules(target), image, backend)
+        terraform_apply(get_tf_modules(target), image, backend, config)
     elif target == 'all':
-        infra_exit_code = terraform_apply(get_tf_modules('infra'), image, backend)
+        infra_exit_code = terraform_apply(get_tf_modules('infra'), image, backend, config)
         if infra_exit_code == 0:
             generate_vars_file()
             ansible_exit_code = run_ansible('setup', image)
             if ansible_exit_code == 0:
-                terraform_apply(get_tf_modules('k8s'), image, backend)
+                terraform_apply(get_tf_modules('k8s'), image, backend, config)
 
 
 def get_tf_modules(target):
