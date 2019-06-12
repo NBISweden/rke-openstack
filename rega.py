@@ -168,8 +168,13 @@ def get_tf_modules(target):
         return ''
 
 
-def terraform_apply(modules, image, backend=False):
-    return run_in_container(['terraform init -backend={} -plugin-dir=/terraform_plugins'.format(backend),
+def terraform_apply(modules, image, backend, config):
+    main_out = render('main.j2', {'backend_type': backend})
+    main_out = main_out.decode('utf-8')
+    main_file = open('main.tf', 'w')
+    main_file.write(main_out)
+    main_file.close()
+    return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
                              'terraform apply -auto-approve {}'.format(modules)], image)
 
 
