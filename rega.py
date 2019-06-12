@@ -10,6 +10,7 @@ from distutils import dir_util
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
+from jinja2 import Environment, FileSystemLoader
 
 logging.basicConfig(level=logging.INFO)
 DEFAULT_IMAGE = 'nbisweden/rega:0.2'
