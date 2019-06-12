@@ -50,11 +50,12 @@ def version(image):
 @click.option('-M', '--modules', default='all',
               type=click.Choice(['infra', 'all']),
               help='Options are: "infra" and "all"')
-def apply(image, modules):
+@click.option('--backend/--no-backend', default=False)
+def apply(image, modules, backend):
     """Applies the Terraform plan to spawn the desired resources."""
     logging.info("""Applying setup using mode {}""".format(modules))
     check_environment()
-    apply_tf_modules(modules, image)
+    apply_tf_modules(modules, image, backend)
 
 
 @main.command('destroy')
@@ -136,16 +137,16 @@ def run_in_container(commands, image):
     return exit_code
 
 
-def apply_tf_modules(target, image):
+def apply_tf_modules(target, image, backend):
     if target == 'infra':
-        terraform_apply(get_tf_modules(target), image)
+        terraform_apply(get_tf_modules(target), image, backend)
     elif target == 'all':
-        infra_exit_code = terraform_apply(get_tf_modules('infra'), image)
+        infra_exit_code = terraform_apply(get_tf_modules('infra'), image, backend)
         if infra_exit_code == 0:
             generate_vars_file()
             ansible_exit_code = run_ansible('setup', image)
             if ansible_exit_code == 0:
-                terraform_apply(get_tf_modules('k8s'), image)
+                terraform_apply(get_tf_modules('k8s'), image, backend)
 
 
 def get_tf_modules(target):
@@ -162,8 +163,8 @@ def get_tf_modules(target):
         return ''
 
 
-def terraform_apply(modules, image):
-    return run_in_container(['terraform init -plugin-dir=/terraform_plugins',
+def terraform_apply(modules, image, backend=False):
+    return run_in_container(['terraform init -backend={} -plugin-dir=/terraform_plugins'.format(backend),
                              'terraform apply -auto-approve {}'.format(modules)], image)
 
 
