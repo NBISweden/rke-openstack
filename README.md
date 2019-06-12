@@ -23,7 +23,7 @@ You can now explore the different functions provided by the CLI by executing:
 rega --help
 ```
 
-## Deployment
+## Deployment configuration
 
 To create a new deployment project you can run:
 ```
@@ -54,9 +54,44 @@ edge_flavor_name="ssc.medium"
 edge_count=1
 ```
 
-To fire up the infrastructure execute the `apply` command with the desired modules. By default all modules will be created.
+If you want the state to be stored into a S3 remote backend you can add the following configuration to the `main.tf` file:
+
 ```
-rega apply --modules=[infra,all]
+ terraform {
+  backend "s3" {
+    access_key = "xyz"
+    secret_key = "xyz"
+    bucket = "bucketname"
+    region = "us-east-1"
+    endpoint = "https://s3.endpoint"
+    key = "terraform.tfstate"
+    skip_requesting_account_id = true
+    skip_credentials_validation = true
+    skip_get_ec2_platforms = true
+    skip_metadata_api_check = true
+    skip_region_validation = true
+  }
+}
+
+```
+
+And for Swift:
+
+```
+terraform {
+  backend "swift" {
+    container          = "cluster-state"
+    archive_container  = "cluster-state-archive"
+  }
+}
+
+```
+
+## Firing up the infrastructure
+
+To spawn the infrastructure execute the `apply` command with the desired modules. By default all modules will be created and we do not initialise Terraform to support a remote backend.
+```
+rega apply --modules=[infra,all] [--backend,--no-backend]
 ```
 
 Once the deployment is done, you can configure `kubectl` and explore the cluster:
