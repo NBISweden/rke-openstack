@@ -51,12 +51,16 @@ def version(image):
 @click.option('-M', '--modules', default='all',
               type=click.Choice(['infra', 'all']),
               help='Options are: "infra" and "all"')
-@click.option('--backend/--no-backend', default=False)
-def apply(image, modules, backend):
+@click.option('-B', '--backend', default='local',
+              type=click.Choice(['local', 's3', 'swift']),
+              help='Options are: "local", "s3" and "swift"')
+@click.option('-C', '--config', default="backend.config",
+              help='File used to define backend config')
+def apply(image, modules, backend, config):
     """Applies the Terraform plan to spawn the desired resources."""
     logging.info("""Applying setup using mode {}""".format(modules))
     check_environment()
-    apply_tf_modules(modules, image, backend)
+    apply_tf_modules(modules, image, backend, config)
 
 
 @main.command('destroy')
