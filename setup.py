@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='rega',
-    version='0.4.3',
+    version='0.4.6',
     packages=find_packages(),
     py_modules=['rega'],
     include_package_data=True,
@@ -11,6 +11,7 @@ setup(
     install_requires=[
         'click==7.0',
         'pyhcl==0.3.12',
+        'jinja2==2.10.1',
         'click-plugins==1.1.1',
         'docker==4.0.1',
         'cryptography==2.7',

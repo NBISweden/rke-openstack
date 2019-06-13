@@ -10,6 +10,7 @@ from distutils import dir_util
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
+from jinja2 import Environment, FileSystemLoader
 
 logging.basicConfig(level=logging.INFO)
 DEFAULT_IMAGE = 'nbisweden/rega:0.2'
@@ -50,11 +51,16 @@ def version(image):
 @click.option('-M', '--modules', default='all',
               type=click.Choice(['infra', 'all']),
               help='Options are: "infra" and "all"')
-def apply(image, modules):
+@click.option('-B', '--backend', default='local',
+              type=click.Choice(['local', 's3', 'swift']),
+              help='Options are: "local", "s3" and "swift"')
+@click.option('-C', '--config', default="backend.config",
+              help='File used to define backend config')
+def apply(image, modules, backend, config):
     """Applies the Terraform plan to spawn the desired resources."""
     logging.info("""Applying setup using mode {}""".format(modules))
     check_environment()
-    apply_tf_modules(modules, image)
+    apply_tf_modules(modules, image, backend, config)
 
 
 @main.command('destroy')
@@ -136,16 +142,35 @@ def run_in_container(commands, image):
     return exit_code
 
 
-def apply_tf_modules(target, image):
+def render(template_path, data, extensions=None, strict=False):
+
+    if extensions is None:
+        extensions = []
+    env = Environment(
+        loader=FileSystemLoader(os.path.dirname(template_path)),
+        extensions=extensions,
+        keep_trailing_newline=True,
+    )
+    if strict:
+        from jinja2 import StrictUndefined
+        env.undefined = StrictUndefined
+
+    env.globals['environ'] = os.environ.get
+
+    output = env.get_template(os.path.basename(template_path)).render(data)
+    return output.encode('utf-8')
+
+
+def apply_tf_modules(target, image, backend, config):
     if target == 'infra':
-        terraform_apply(get_tf_modules(target), image)
+        terraform_apply(get_tf_modules(target), image, backend, config)
     elif target == 'all':
-        infra_exit_code = terraform_apply(get_tf_modules('infra'), image)
+        infra_exit_code = terraform_apply(get_tf_modules('infra'), image, backend, config)
         if infra_exit_code == 0:
             generate_vars_file()
             ansible_exit_code = run_ansible('setup', image)
             if ansible_exit_code == 0:
-                terraform_apply(get_tf_modules('k8s'), image)
+                terraform_apply(get_tf_modules('k8s'), image, backend, config)
 
 
 def get_tf_modules(target):
@@ -162,8 +187,13 @@ def get_tf_modules(target):
         return ''
 
 
-def terraform_apply(modules, image):
-    return run_in_container(['terraform init -plugin-dir=/terraform_plugins',
+def terraform_apply(modules, image, backend, config):
+    main_out = render('main.j2', {'backend_type': backend})
+    main_out = main_out.decode('utf-8')
+    main_file = open('main.tf', 'w')
+    main_file.write(main_out)
+    main_file.close()
+    return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
                              'terraform apply -auto-approve {}'.format(modules)], image)
 
 
