@@ -54,7 +54,7 @@ def version(image):
 @click.option('-B', '--backend', default='local',
               type=click.Choice(['local', 's3', 'swift']),
               help='Options are: "local", "s3" and "swift"')
-@click.option('-C', '--config', default="backend.config",
+@click.option('-C', '--config', default="backend.cfg",
               help='File used to define backend config')
 def apply(image, modules, backend, config):
     """Applies the Terraform plan to spawn the desired resources."""
