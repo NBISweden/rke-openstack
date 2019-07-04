@@ -13,7 +13,7 @@ from cryptography.hazmat.backends import default_backend as crypto_default_backe
 from jinja2 import Environment, FileSystemLoader
 
 logging.basicConfig(level=logging.INFO)
-DEFAULT_IMAGE = 'nbisweden/rega:0.2'
+DEFAULT_IMAGE = 'nbisweden/rega:0.3'
 
 
 @click.group()
