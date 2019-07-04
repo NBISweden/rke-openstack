@@ -4,5 +4,6 @@ resource "random_id" "suffix" {
 
 resource "openstack_compute_keypair_v2" "main" {
   name       = "${var.key_prefix}-keypair-${random_id.suffix.hex}"
-  public_key = "${file(var.public_ssh_key)}"
+  public_key = file(var.public_ssh_key)
 }
+
