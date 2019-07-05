@@ -68,7 +68,6 @@ skip_credentials_validation = true
 skip_get_ec2_platforms = true
 skip_metadata_api_check = true
 skip_region_validation = true
-
 ```
 
 And for Swift:
@@ -76,7 +75,6 @@ And for Swift:
 ```
 container          = "cluster-state"
 archive_container  = "cluster-state-archive"
-
 ```
 
 ## Firing up the infrastructure
@@ -85,7 +83,6 @@ To spawn the infrastructure execute the `apply` command with the desired modules
 
 ```
 rega apply --modules=[infra,all] --backend=[local,s3,swift] [--config=<backend config file>]
-
 ```
 
 Once the deployment is done, you can configure `kubectl` and explore the cluster:
