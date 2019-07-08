@@ -22,3 +22,6 @@ output "hostnames" {
   value = flatten([openstack_compute_instance_v2.instance.*.name])
 }
 
+output "nodes" {
+  value = flatten([data.null_data_source.nodes.*.inputs])
+}
