@@ -19,12 +19,43 @@ resource "rke_cluster" "cluster" {
     }
   }
 
+dynamic nodes {
+    for_each = var.master_nodes
+    content {
+      address = nodes.value.address
+      user    = nodes.value.user
+      role    = ["controlplane", "etcd"]
+      ssh_key = file("${nodes.value.ssh_key}")
+      labels  =  {"node_type" = "master"}
+    }
+  }
+
+dynamic nodes {
+    for_each = var.edge_nodes
+    content {
+      address = nodes.value.address
+      user    = nodes.value.user
+      role    = ["worker"]
+      ssh_key = file("${nodes.value.ssh_key}")
+      labels  =  {"node_type" = "edge"}
+    }
+  }
+
+dynamic nodes {
+    for_each = var.service_nodes
+    content {
+      address = nodes.value.address
+      user    = nodes.value.user
+      role    = ["worker"]
+      ssh_key = file("${nodes.value.ssh_key}")
+      labels  =  {"node_type" = "service"}
+    }
+  }
+
   authentication {
     strategy = "x509"
     sans     = flatten([var.kubeapi_sans_list])
   }
-
-  nodes_conf = flatten([var.node_mappings])
 
   bastion_host {
     address      = var.ssh_bastion_host
