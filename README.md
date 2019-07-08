@@ -54,7 +54,7 @@ edge_flavor_name="ssc.medium"
 edge_count=1
 ```
 
-If you want the state to be stored into a S3 remote backend you can add the following configuration to the `backend.config` file:
+If you want the state to be stored into a S3 remote backend you can add the following configuration to the `backend.cfg` file:
 
 ```
 access_key = "xyz"
