@@ -37,14 +37,12 @@ data "template_file" "cloud_init" {
   template = file("${path.module}/${var.cloud_init_data}")
 }
 
-data "rke_node_parameter" "node_mappings" {
-  count             = var.node_count
-  address           = element(local.address_list, count.index)
-  user              = var.ssh_user
-  ssh_key_path      = var.ssh_key
-  internal_address  = element(openstack_compute_instance_v2.instance.*.network.0.fixed_ip_v4, count.index)
-  hostname_override = element(openstack_compute_instance_v2.instance.*.name, count.index)
-  role              = var.role
-  labels            = var.labels
+data "null_data_source" "nodes" {
+  count = var.node_count
+  inputs = {
+    address = element(local.address_list, count.index)
+    user    = var.ssh_user
+    ssh_key = var.ssh_key
+  }
 }
 
