@@ -104,7 +104,7 @@ variable "edge_assign_floating_ip" {
 variable "allowed_ingress_tcp" {
   type        = "list"
   description = "Allowed TCP ingress traffic"
-  default     = [22, 6443, 80, 443]
+  default     = [22, 6443, 80, 443, 10250]
 }
 
 variable "allowed_ingress_udp" {
