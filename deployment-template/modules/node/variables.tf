@@ -48,17 +48,6 @@ variable "floating_ip_pool" {
   default     = ""
 }
 
-variable "role" {
-  type        = list(string)
-  description = "List of RKE-compliant roles for this node"
-}
-
-variable "labels" {
-  type        = map(string)
-  description = "Map of Kubernetes labels for this node"
-  default     = {}
-}
-
 variable "ssh_bastion_host" {
   default = ""
 }
