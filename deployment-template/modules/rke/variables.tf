@@ -1,6 +1,13 @@
-variable "node_mappings" {
-  type        = list(string)
-  description = "Node mappings for RKE provisioning"
+variable "master_nodes" {
+  description = "Master nodes info"
+}
+
+variable "service_nodes" {
+  description = "Service nodes info"
+}
+
+variable "edge_nodes" {
+  description = "Edge nodes info"
 }
 
 variable "ssh_bastion_host" {
