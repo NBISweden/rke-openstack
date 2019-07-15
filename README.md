@@ -1,4 +1,4 @@
-# REGA: RKE deployments using Terraform
+# RKE deployment on Openstack using Terraform
 
 This CLI allows you to install vanilla Kubernetes in a cluster of machines created with Terraform on Openstack. It also provides automatic provisioning of `Cinder volumes` to Kubernetes pods, `nginx` as LoadBalancer and the possibility to setup the `Rancher Server UI` to manage the cluster.
 
@@ -11,8 +11,12 @@ On your machine you need the following requirements:
 - [Python 3.7+](https://www.python.org/downloads/)
 - Set up the environment by [sourcing the OpenStack RC](https://docs.openstack.org/zh_CN/user-guide/common/cli-set-environment-variables-using-openstack-rc.html) file for your project
 
+## Installing the CLI
 
-## Installing the REGA client
+You need `python3` installed. I recommend that you use `virtualenv` for installation of the CLI:
+
+    virtualenv venv
+    source venv/bin/activate
 
 In order to install the CLI please run:
 ```
