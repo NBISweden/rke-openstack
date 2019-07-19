@@ -34,7 +34,7 @@ To create a new deployment project you can run:
 rega init <my-project>
 cd <my-project>
 ```
-Once in your project folder, create a file called `terraform.tfvars` where you specify the values for the following settings:
+Once in your project folder, update the file called `terraform.tfvars` where you specify the values for the following settings:
 
 ```yml
 ## Cluster configuration ##
