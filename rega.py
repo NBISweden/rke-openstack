@@ -32,7 +32,7 @@ def init(dir, image):
     client.images.pull(image)
     check_init_dir()
     create_deployment(dir)
-    logging.info("""Environment initialised. Navigate to the {} folder and create a terraform.tfvars file with your configuration""".format(dir))
+    logging.info("""Environment initialised. Navigate to the {} folder and update the terraform.tfvars file with your configuration""".format(dir))
 
 
 @main.command('version')
@@ -224,12 +224,12 @@ def check_environment():
         sys.stderr.write("Error: You need to source the openstack credentials file\n")
         sys.exit(1)
 
-    if not os.path.isfile('ssh_key.pub'):
-        sys.stderr.write("Error: ssh_key not found. Are you in the right directory?\n")
+    if os.path.exists('deployment-template'):
+        sys.stderr.write("Error: Did you run 'rega init'? If so, please navigate to your environment folder\n")
         sys.exit(1)
 
     if not os.path.isfile('terraform.tfvars'):
-        sys.stderr.write("Error: terraform.tfvars not found. Are you in the right directory?\n")
+        sys.stderr.write("Error: terraform.tfvars not found. Please check you are in your environment folder\n")
         sys.exit(1)
 
 
