@@ -168,7 +168,7 @@ def apply_tf_modules(target, image, backend, config):
         infra_exit_code = terraform_apply(get_tf_modules('infra'), image, backend, config)
         if infra_exit_code == 0:
             generate_vars_file()
-            ansible_exit_code = run_ansible('setup', image)
+            ansible_exit_code = run_ansible('setup.yml', image)
             if ansible_exit_code == 0:
                 terraform_apply(get_tf_modules('k8s'), image, backend, config)
 
@@ -198,7 +198,7 @@ def terraform_apply(modules, image, backend, config):
 
 
 def run_ansible(playbook, image):
-    return run_in_container(['ansible-playbook playbooks/{}.yml'.format(playbook)], image)
+    return run_in_container(['ansible-playbook playbooks/{}'.format(playbook)], image)
 
 
 def create_deployment(dir):
