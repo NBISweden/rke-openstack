@@ -34,14 +34,12 @@ To create a new deployment project you can run:
 rega init <my-project>
 cd <my-project>
 ```
-Once in your project folder, create a file called `terraform.tfvars` where you specify the values for the following settings:
+Once in your project folder, update the file called `terraform.tfvars` where you specify the values for the following settings:
 
 ```yml
+## Cluster configuration ##
 # Unique name for the resources
 cluster_prefix="my-test"
-# Key pair settings
-ssh_key_pub="ssh_key.pub"
-ssh_key="ssh_key"
 # User for ssh connections. It varies among distributions. (CentOS might work with cloud-user or centos)
 ssh_user="<ssh-user>"
 # Network settings
@@ -56,6 +54,8 @@ service_flavor_name="ssc.medium"
 service_count=2
 edge_flavor_name="ssc.medium"
 edge_count=1
+# Please check that the Kubernetes version is RKE 0.2.x compliant)
+kubernetes_version="v1.14.3-rancher1-1"
 ```
 
 If you want the state to be stored into a S3 remote backend you can add the following configuration to the `backend.cfg` file:
@@ -102,7 +102,7 @@ kubectl get nodes
 You can run Ansible playbooks against the virtual machines by running the `provision` command. It expects the path of the playbook under the `playbooks` folder. For example:
 
 ```
-rega provision setup
+rega provision setup.yml
 ```
 
 ## Releasing resources

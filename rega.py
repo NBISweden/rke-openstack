@@ -13,7 +13,7 @@ from cryptography.hazmat.backends import default_backend as crypto_default_backe
 from jinja2 import Environment, FileSystemLoader
 
 logging.basicConfig(level=logging.INFO)
-DEFAULT_IMAGE = 'nbisweden/rega:0.3'
+DEFAULT_IMAGE = 'nbisweden/rega:0.4'
 
 
 @click.group()
@@ -32,7 +32,7 @@ def init(dir, image):
     client.images.pull(image)
     check_init_dir()
     create_deployment(dir)
-    logging.info("""Environment initialised. Navigate to the {} folder and create a terraform.tfvars file with your configuration""".format(dir))
+    logging.info("""Environment initialised. Navigate to the {} folder and update the terraform.tfvars file with your configuration""".format(dir))
 
 
 @main.command('version')
@@ -168,7 +168,7 @@ def apply_tf_modules(target, image, backend, config):
         infra_exit_code = terraform_apply(get_tf_modules('infra'), image, backend, config)
         if infra_exit_code == 0:
             generate_vars_file()
-            ansible_exit_code = run_ansible('setup', image)
+            ansible_exit_code = run_ansible('setup.yml', image)
             if ansible_exit_code == 0:
                 terraform_apply(get_tf_modules('k8s'), image, backend, config)
 
@@ -198,7 +198,7 @@ def terraform_apply(modules, image, backend, config):
 
 
 def run_ansible(playbook, image):
-    return run_in_container(['ansible-playbook playbooks/{}.yml'.format(playbook)], image)
+    return run_in_container(['ansible-playbook playbooks/{}'.format(playbook)], image)
 
 
 def create_deployment(dir):
@@ -224,12 +224,12 @@ def check_environment():
         sys.stderr.write("Error: You need to source the openstack credentials file\n")
         sys.exit(1)
 
-    if not os.path.isfile('ssh_key.pub'):
-        sys.stderr.write("Error: ssh_key not found. Are you in the right directory?\n")
+    if os.path.exists('deployment-template'):
+        sys.stderr.write("Error: Did you run 'rega init'? If so, please navigate to your environment folder\n")
         sys.exit(1)
 
     if not os.path.isfile('terraform.tfvars'):
-        sys.stderr.write("Error: terraform.tfvars not found. Are you in the right directory?\n")
+        sys.stderr.write("Error: terraform.tfvars not found. Please check you are in your environment folder\n")
         sys.exit(1)
 
 
