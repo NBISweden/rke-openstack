@@ -44,6 +44,25 @@ def version(image):
     print("""REGA CLI version: {}""".format(pkg_resources.get_distribution("rega").version))
 
 
+@main.command('plan')
+@click.option('-I', '--image', default=DEFAULT_IMAGE,
+              envvar='REGA_PROVISIONER_IMG',
+              help='Docker image used for provisioning')
+@click.option('-M', '--modules', default='all',
+              type=click.Choice(['infra', 'all']),
+              help='Options are: "infra" and "all"')
+@click.option('-B', '--backend', default='local',
+              type=click.Choice(['local', 's3', 'swift']),
+              help='Options are: "local", "s3" and "swift"')
+@click.option('-C', '--config', default="backend.cfg",
+              help='File used to define backend config')
+def plan(image, modules, backend, config):
+    """Creates a Terraform execution plan with the necessary actions to achieve the desired state."""
+    logging.info("""Creating execution plan for {} modules""".format(modules))
+    check_environment()
+    terraform_plan(modules, image, backend, config)
+
+
 @main.command('apply')
 @click.option('-I', '--image', default=DEFAULT_IMAGE,
               envvar='REGA_PROVISIONER_IMG',
@@ -143,7 +162,6 @@ def run_in_container(commands, image):
 
 
 def render(template_path, data, extensions=None, strict=False):
-
     if extensions is None:
         extensions = []
     env = Environment(
@@ -187,14 +205,24 @@ def get_tf_modules(target):
         return ''
 
 
+def terraform_plan(target, image, backend, config):
+    setup_tf_backend(backend)
+    return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
+                             'terraform plan {}'.format(get_tf_modules(target))], image)
+
+
 def terraform_apply(modules, image, backend, config):
+    setup_tf_backend(backend)
+    return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
+                             'terraform apply -auto-approve {}'.format(modules)], image)
+
+
+def setup_tf_backend(backend):
     main_out = render('main.j2', {'backend_type': backend})
     main_out = main_out.decode('utf-8')
     main_file = open('main.tf', 'w')
     main_file.write(main_out)
     main_file.close()
-    return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
-                             'terraform apply -auto-approve {}'.format(modules)], image)
 
 
 def run_ansible(playbook, image):
