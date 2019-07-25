@@ -22,6 +22,7 @@ resource "rke_cluster" "cluster" {
 dynamic nodes {
     for_each = var.master_nodes
     content {
+      internal_address = nodes.value.internal_address
       address = nodes.value.address
       user    = nodes.value.user
       role    = ["controlplane", "etcd"]
@@ -33,6 +34,7 @@ dynamic nodes {
 dynamic nodes {
     for_each = var.edge_nodes
     content {
+      internal_address = nodes.value.internal_address
       address = nodes.value.address
       user    = nodes.value.user
       role    = ["worker"]
@@ -44,6 +46,7 @@ dynamic nodes {
 dynamic nodes {
     for_each = var.service_nodes
     content {
+      internal_address = nodes.value.internal_address
       address = nodes.value.address
       user    = nodes.value.user
       role    = ["worker"]
@@ -92,6 +95,25 @@ provisioner: kubernetes.io/cinder
 reclaimPolicy: Delete
 parameters:
   availability: nova
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: terraform-tiller
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tiller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: terraform-tiller
+    namespace: kube-system
 EOL
 
 }
@@ -119,40 +141,3 @@ resource "local_file" "cluster_yml" {
   filename = "${path.root}/cluster.yml"
   content = rke_cluster.cluster.rke_cluster_yaml
 }
-
-# Configure Kubernetes provider
-provider "kubernetes" {
-  host = local.api_access
-  username = rke_cluster.cluster.kube_admin_user
-  client_certificate = rke_cluster.cluster.client_cert
-  client_key = rke_cluster.cluster.client_key
-  cluster_ca_certificate = rke_cluster.cluster.ca_crt
-}
-
-resource "kubernetes_service_account" "tiller" {
-  metadata {
-    name = "terraform-tiller"
-    namespace = "kube-system"
-  }
-}
-
-resource "kubernetes_cluster_role_binding" "tiller" {
-  depends_on = [kubernetes_service_account.tiller]
-  metadata {
-    name = "terraform-tiller"
-  }
-
-  role_ref {
-    kind = "ClusterRole"
-    name = "cluster-admin"
-    api_group = "rbac.authorization.k8s.io"
-  }
-
-  subject {
-    kind = "ServiceAccount"
-    name = "terraform-tiller"
-    api_group = ""
-    namespace = "kube-system"
-  }
-}
-
