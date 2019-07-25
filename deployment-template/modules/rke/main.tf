@@ -22,6 +22,7 @@ resource "rke_cluster" "cluster" {
 dynamic nodes {
     for_each = var.master_nodes
     content {
+      internal_address = nodes.value.internal_address
       address = nodes.value.address
       user    = nodes.value.user
       role    = ["controlplane", "etcd"]
@@ -33,6 +34,7 @@ dynamic nodes {
 dynamic nodes {
     for_each = var.edge_nodes
     content {
+      internal_address = nodes.value.internal_address
       address = nodes.value.address
       user    = nodes.value.user
       role    = ["worker"]
@@ -44,6 +46,7 @@ dynamic nodes {
 dynamic nodes {
     for_each = var.service_nodes
     content {
+      internal_address = nodes.value.internal_address
       address = nodes.value.address
       user    = nodes.value.user
       role    = ["worker"]
