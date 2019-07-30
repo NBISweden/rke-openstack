@@ -69,6 +69,7 @@ def version(image):
 def plan(image, modules, backend, config):
     """Creates a Terraform execution plan with the necessary actions to achieve the desired state."""
     logging.info("""Creating execution plan for {} modules""".format(modules))
+    check_environment()
     check_version(PACKAGE_VERSION)
     terraform_plan(modules, image, backend, config)
 
