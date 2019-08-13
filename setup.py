@@ -3,8 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='rega',
     version='1.0.0',
-    packages=find_packages(),
-    py_modules=['rega'],
+    packages=['rega'],
     include_package_data=True,
     description='REGA CLI for provisioning RKE clusters',
     author='Jon Ander Novella',
@@ -20,6 +19,6 @@ setup(
     ],
     entry_points='''
         [console_scripts]
-        rega=rega:main
+        rega=rega.cmd:main
     '''
 )
