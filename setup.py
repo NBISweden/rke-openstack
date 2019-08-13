@@ -16,7 +16,8 @@ setup(
         'docker==4.0.1',
         'cryptography==2.7',
         'flake8==3.7.7',
-        'PyYAML==5.1.1'
+        'PyYAML==5.1.1',
+        'prettytable==0.7.2'
     ],
     entry_points='''
         [console_scripts]
