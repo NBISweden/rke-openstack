@@ -108,7 +108,7 @@ module "rke" {
 
 # Generate Ansible inventory
 module "inventory" {
-  source             = "./ansible-inventory"
+  source             = "./modules/ansible-inventory"
   cluster_prefix     = var.cluster_prefix
   ssh_user           = var.ssh_user
   master_count       = var.master_count
