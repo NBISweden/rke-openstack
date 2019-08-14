@@ -17,3 +17,4 @@ edge_flavor_name="ssc.medium"
 edge_count=1
 # Please check that the Kubernetes version is RKE 0.2.x compliant
 kubernetes_version="v1.14.3-rancher1-1" 
+
