@@ -60,18 +60,18 @@ variable inventory_output_file {
 
 locals {
 
-  master_hostnames  = split(",", length(var.master_hostnames) == 0 ? join(",", list("")) : join(",", var.master_hostnames))
-  master_private_ip = split(",", length(var.master_private_ip) == 0 ? join(",", list("")) : join(",", var.master_private_ip))
+  master_hostnames  = split(",", length(var.master_hostnames) == 0 ? join(",", list("")) : join(",", slice(var.master_hostnames, 0, var.master_count)))
+  master_private_ip = split(",", length(var.master_private_ip) == 0 ? join(",", list("")) : join(",", slice(var.master_private_ip, 0, var.master_count)))
 
-  edge_hostnames  = split(",", length(var.edge_hostnames) == 0 ? join(",", list("")) : join(",", var.edge_hostnames))
-  edge_private_ip = split(",", length(var.edge_private_ip) == 0 ? join(",", list("")) : join(",", var.edge_private_ip))
+  edge_hostnames  = split(",", length(var.edge_hostnames) == 0 ? join(",", list("")) : join(",", slice(var.edge_hostnames, 0, var.edge_count)))
+  edge_private_ip = split(",", length(var.edge_private_ip) == 0 ? join(",", list("")) : join(",", slice(var.edge_private_ip, 0, var.edge_count)))
 
-  service_hostnames  = split(",", length(var.service_hostnames) == 0 ? join(",", list("")) : join(",", var.service_hostnames))
-  service_private_ip = split(",", length(var.service_private_ip) == 0 ? join(",", list("")) : join(",", var.service_private_ip))
+  service_hostnames  = split(",", length(var.service_hostnames) == 0 ? join(",", list("")) : join(",", slice(var.service_hostnames, 0, var.service_count)))
+  service_private_ip = split(",", length(var.service_private_ip) == 0 ? join(",", list("")) : join(",", slice(var.service_private_ip, 0, var.service_count)))
 
-  masters    = join("\n",formatlist("%s ansible_host=%s ansible_user=%s private_ip=%s", local.master_hostnames, var.master_public_ip, var.ssh_user, local.master_private_ip ))
-  edges    = join("\n",formatlist("%s ansible_host=%s ansible_user=%s private_ip=%s", local.edge_hostnames, var.edge_public_ip, var.ssh_user, local.edge_private_ip ))
-  services    = join("\n",formatlist("%s ansible_host=%s ansible_user=%s private_ip=%s", local.service_hostnames, var.service_public_ip, var.ssh_user, local.service_private_ip ))
+  masters  = join("\n",formatlist("%s ansible_host=%s ansible_user=%s private_ip=%s", local.master_hostnames,  slice(var.master_public_ip,  0, var.master_count),  var.ssh_user, local.master_private_ip  ))
+  edges    = join("\n",formatlist("%s ansible_host=%s ansible_user=%s private_ip=%s", local.edge_hostnames,    slice(var.edge_public_ip,    0, var.edge_count),    var.ssh_user, local.edge_private_ip    ))
+  services = join("\n",formatlist("%s ansible_host=%s ansible_user=%s private_ip=%s", local.service_hostnames, slice(var.service_public_ip, 0, var.service_count), var.ssh_user, local.service_private_ip ))
 }
 
 # Generate inventory from template file
