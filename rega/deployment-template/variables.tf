@@ -101,16 +101,19 @@ variable "edge_assign_floating_ip" {
   default     = true
 }
 
+# Type for this one and next is supposed to be map(list(number)), but then the
+# pyhcl library can't parse the tf file, so for now it will stay like this, the
+# real type constraint can be found in modules/secgroup/variables.tf
 variable "allowed_ingress_tcp" {
-  type        = "list"
-  description = "Allowed TCP ingress traffic"
-  default     = [22, 6443, 80, 443, 10250]
+  type        = "map"
+  description = "Allowed TCP ingress traffic. A map with CIDR keys and values are the list of ports that should be open to that block."
+  default     = {}
 }
 
 variable "allowed_ingress_udp" {
-  type        = "list"
-  description = "Allowed UDP ingress traffic"
-  default     = []
+  type        = "map"
+  description = "Allowed UDP ingress traffic. A map with CIDR keys and values are the list of ports that should be open to that block."
+  default     = {}
 }
 
 variable "os_username" {

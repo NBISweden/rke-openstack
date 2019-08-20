@@ -3,14 +3,14 @@ variable "name_prefix" {
 }
 
 variable "allowed_ingress_tcp" {
-  type        = list(string)
+  type        = map(list(number))
   description = "Allowed TCP ingress traffic"
-  default     = []
+  default     = {}
 }
 
 variable "allowed_ingress_udp" {
-  type        = list(string)
+  type        = map(list(number))
   description = "Allowed UDP ingress traffic"
-  default     = []
+  default     = {}
 }
 

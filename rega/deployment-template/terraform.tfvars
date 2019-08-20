@@ -18,3 +18,9 @@ edge_count=1
 # Please check that the Kubernetes version is RKE 0.2.x compliant
 kubernetes_version="v1.14.3-rancher1-1" 
 
+# Security groups
+allowed_ingress_tcp={
+  "130.238.0.0/16" = [22, 6443, 80, 443, 10250] # Uppsala University
+  "130.239.0.0/16" = [22, 6443, 80, 443, 10250] # Umeå
+  "129.16.0.0/16"  = [22, 6443, 80, 443, 10250] # Chalmers ### ipinfo.io
+}
