@@ -34,8 +34,6 @@ def main(image):
 def init(directory):
     """Initialises a new REGA environment."""
     logging.info("""Initilising a new environment in %s""", directory)
-    client = docker.from_env()
-    download_image(client)
     create_deployment(directory)
     logging.info("""Environment initialised. Navigate to the %s folder and update the terraform.tfvars file with your configuration""", directory)
 
