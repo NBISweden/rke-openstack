@@ -47,7 +47,7 @@ resource "openstack_networking_secgroup_rule_v2" "ingress_tcp" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "ingress_udp" {
-  count = length(var.allowed_ingress_udp)
+  count = length(local.expanded_udp_ingresses)
 
   direction         = "ingress"
   ethertype         = "IPv4"
