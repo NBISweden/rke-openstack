@@ -34,7 +34,7 @@ variable "network_name" {
   description = "Name of the network to attach this node to"
 }
 
-variable "secgroup_name" {
+variable "secgroups_name" {
   description = "Name of the security group for this node"
 }
 

@@ -18,3 +18,11 @@ edge_count=1
 # Please check that the Kubernetes version is RKE 0.2.x compliant
 kubernetes_version="v1.14.3-rancher1-1" 
 
+# Security groups
+allowed_ingress_tcp={
+  # These are the ports you need to work with kubernetes and rancher from your
+  # machine.
+  #'<YOUR CIDR>' = [22, 6443, 80, 443, 10250]
+}
+allowed_ingress_udp={}
+secgroups = []

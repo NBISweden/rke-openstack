@@ -23,27 +23,38 @@ resource "openstack_networking_secgroup_rule_v2" "internal_udp" {
   security_group_id = openstack_networking_secgroup_v2.secgroup.id
 }
 
+locals {
+  expanded_tcp_ingresses = flatten([
+    for ip, ports in var.allowed_ingress_tcp:
+      [for port in ports: {"ip" = ip, "port" = port}]
+  ])
+  expanded_udp_ingresses = flatten([
+    for ip, ports in var.allowed_ingress_udp:
+      [for port in ports: {"ip" = ip, "port" = port}]
+  ])
+}
+
 resource "openstack_networking_secgroup_rule_v2" "ingress_tcp" {
-  count = length(var.allowed_ingress_tcp)
+  count = length(local.expanded_tcp_ingresses)
 
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
-  port_range_min    = element(var.allowed_ingress_tcp, count.index)
-  port_range_max    = element(var.allowed_ingress_tcp, count.index)
-  remote_ip_prefix  = "0.0.0.0/0"
+  remote_ip_prefix  = local.expanded_tcp_ingresses[count.index]["ip"]
+  port_range_min    = local.expanded_tcp_ingresses[count.index]["port"]
+  port_range_max    = local.expanded_tcp_ingresses[count.index]["port"]
   security_group_id = openstack_networking_secgroup_v2.secgroup.id
 }
 
 resource "openstack_networking_secgroup_rule_v2" "ingress_udp" {
-  count = length(var.allowed_ingress_udp)
+  count = length(local.expanded_udp_ingresses)
 
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "udp"
-  port_range_min    = element(var.allowed_ingress_udp, count.index)
-  port_range_max    = element(var.allowed_ingress_udp, count.index)
-  remote_ip_prefix  = "0.0.0.0/0"
+  remote_ip_prefix  = local.expanded_udp_ingresses[count.index]["ip"]
+  port_range_min    = local.expanded_udp_ingresses[count.index]["port"]
+  port_range_max    = local.expanded_udp_ingresses[count.index]["port"]
   security_group_id = openstack_networking_secgroup_v2.secgroup.id
 }
 
