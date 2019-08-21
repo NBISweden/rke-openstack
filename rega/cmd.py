@@ -96,17 +96,22 @@ def destroy(modules):
     run_in_container(['terraform destroy -force {}'.format(tf_modules)])
 
 
-@main.command('terraform')
-@click.argument('extra_args')
+def _fix_extra_args(ctx, param, value):
+    """Callback to make sure the extra_args is a string and not a tuple"""
+    return " ".join(value)
+
+
+@main.command('terraform', context_settings={"ignore_unknown_options": True})
+@click.argument('extra_args', nargs=-1, type=click.UNPROCESSED, callback=_fix_extra_args)
 def terraform(extra_args):
     """Executes the terraform command in the provisioner container with the provided args."""
     logging.info("""Running terraform with arguments: %s""", extra_args)
     check_version(PACKAGE_VERSION)
-    run_in_container(['terraform {}'.format(extra_args)])
+    run_in_container([f'terraform {extra_args}'])
 
 
-@main.command('openstack')
-@click.argument('extra_args')
+@main.command('openstack', context_settings={"ignore_unknown_options": True})
+@click.argument('extra_args', nargs=-1, type=click.UNPROCESSED, callback=_fix_extra_args)
 def openstack(extra_args):
     """Executes the openstack command in the provisioner container with the provided args."""
     logging.info("""Running openstack with arguments: %s""", extra_args)
