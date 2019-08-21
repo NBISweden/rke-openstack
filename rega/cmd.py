@@ -120,12 +120,12 @@ def openstack(extra_args):
 
 
 @main.command('provision')
-@click.argument('extra_args')
-def provision(extra_args):
+@click.argument('playbook')
+def provision(playbook):
     """Executes the Ansible playbook specified as an argument."""
     check_version(PACKAGE_VERSION)
     generate_vars_file()
-    run_ansible(extra_args)
+    run_ansible(playbook)
 
 
 def download_image(client):
