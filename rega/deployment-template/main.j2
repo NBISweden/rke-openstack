@@ -29,7 +29,7 @@ module "master" {
   image_name         = var.image_name
   cloud_init_data    = var.cloud_init_data
   network_name       = module.network.network_name
-  secgroup_name      = module.secgroup.secgroup_name
+  secgroups_name     = [module.secgroup.secgroup_name, var.secgroups]
   floating_ip_pool   = var.floating_ip_pool
   ssh_user           = var.ssh_user
   ssh_key            = var.ssh_key
@@ -47,7 +47,7 @@ module "service" {
   image_name         = var.image_name
   cloud_init_data    = var.cloud_init_data
   network_name       = module.network.network_name
-  secgroup_name      = module.secgroup.secgroup_name
+  secgroups_name     = [module.secgroup.secgroup_name, var.secgroups]
   floating_ip_pool   = var.floating_ip_pool
   ssh_user           = var.ssh_user
   ssh_key            = var.ssh_key
@@ -65,7 +65,7 @@ module "edge" {
   image_name         = var.image_name
   cloud_init_data    = var.cloud_init_data
   network_name       = module.network.network_name
-  secgroup_name      = module.secgroup.secgroup_name
+  secgroups_name     = [module.secgroup.secgroup_name, var.secgroups]
   floating_ip_pool   = var.floating_ip_pool
   ssh_user           = var.ssh_user
   ssh_key            = var.ssh_key

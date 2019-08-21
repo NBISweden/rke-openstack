@@ -12,7 +12,7 @@ resource "openstack_compute_instance_v2" "instance" {
 
   user_data = data.template_file.cloud_init.rendered
   config_drive = "true"
-  security_groups = flatten([var.secgroup_name])
+  security_groups = flatten(var.secgroups_name)
 }
 
 # Allocate floating IPs (if required)

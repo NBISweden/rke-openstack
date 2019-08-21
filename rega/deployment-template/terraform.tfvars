@@ -25,3 +25,4 @@ allowed_ingress_tcp={
   #'<YOUR CIDR>' = [22, 6443, 80, 443, 10250]
 }
 allowed_ingress_udp={}
+secgroups = []

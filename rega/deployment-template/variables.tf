@@ -116,6 +116,12 @@ variable "allowed_ingress_udp" {
   default     = {}
 }
 
+variable "secgroups" {
+  type        = "list"
+  description = "Extra security groups to assign to compute nodes"
+  default     = []
+}
+
 variable "os_username" {
   description = "Openstack user name"
 }
