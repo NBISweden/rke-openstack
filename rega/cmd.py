@@ -1,12 +1,13 @@
 import sys
+import os
+import logging
+from distutils import dir_util
+
 import yaml
 import hcl
-import os
 import click
 import docker
-import logging
 import pkg_resources
-from distutils import dir_util
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
@@ -30,11 +31,11 @@ def main():
               help='Docker image used for provisioning')
 def init(directory, image):
     """Initialises a new REGA environment."""
-    logging.info("""Initilising a new environment in {}""".format(directory))
+    logging.info("""Initilising a new environment in %s""", directory)
     client = docker.from_env()
     download_image(client, image)
     create_deployment(directory)
-    logging.info("""Environment initialised. Navigate to the {} folder and update the terraform.tfvars file with your configuration""".format(directory))
+    logging.info("""Environment initialised. Navigate to the %s folder and update the terraform.tfvars file with your configuration""", directory)
 
 
 @main.command('version')
@@ -65,7 +66,7 @@ def version(image):
               help='File used to define backend config')
 def plan(image, modules, backend, config):
     """Creates a Terraform execution plan with the necessary actions to achieve the desired state."""
-    logging.info("""Creating execution plan for {} modules""".format(modules))
+    logging.info("""Creating execution plan for %s modules""", modules)
     check_version(PACKAGE_VERSION)
     terraform_plan(modules, image, backend, config)
 
@@ -84,7 +85,7 @@ def plan(image, modules, backend, config):
               help='File used to define backend config')
 def apply(image, modules, backend, config):
     """Applies the Terraform plan to spawn the desired resources."""
-    logging.info("""Applying setup using mode {}""".format(modules))
+    logging.info("""Applying setup using mode %s""", modules)
     check_version(PACKAGE_VERSION)
     apply_tf_modules(modules, image, backend, config)
 
@@ -98,7 +99,7 @@ def apply(image, modules, backend, config):
               help='Options are: "infra", "k8s" and "all"')
 def destroy(image, modules):
     """Releases the previously requested resources."""
-    logging.info("""Destroying the infrastructure using mode {}""".format(modules))
+    logging.info("""Destroying the infrastructure using mode %s""", modules)
     tf_modules = get_tf_modules(modules)
     check_version(PACKAGE_VERSION)
     run_in_container(['terraform destroy -force {}'.format(tf_modules)], image)
@@ -111,7 +112,7 @@ def destroy(image, modules):
               help='Docker image used for provisioning')
 def terraform(extra_args, image):
     """Executes the terraform command in the provisioner container with the provided args."""
-    logging.info("""Running terraform with arguments: {}""".format(extra_args))
+    logging.info("""Running terraform with arguments: %s""", extra_args)
     check_version(PACKAGE_VERSION)
     run_in_container(['terraform {}'.format(extra_args)], image)
 
@@ -123,7 +124,7 @@ def terraform(extra_args, image):
               help='Docker image used for provisioning')
 def openstack(extra_args, image):
     """Executes the openstack command in the provisioner container with the provided args."""
-    logging.info("""Running openstack with arguments: {}""".format(extra_args))
+    logging.info("""Running openstack with arguments: %s""", extra_args)
     check_version(PACKAGE_VERSION)
     run_in_container(['openstack {}'.format(extra_args)], image)
 
@@ -226,9 +227,9 @@ def get_tf_modules(target):
 
     if target == 'infra':
         return infra_modules
-    elif target == 'k8s':
+    if target == 'k8s':
         return k8s_modules
-    elif target == 'all':
+    if target == 'all':
         return ''
 
 
@@ -288,6 +289,7 @@ def check_environment():
         sys.exit(1)
 
 def deployment_template_dir():
+    """Get the directory of the deployment template"""
     return pkg_resources.resource_filename(__name__, "deployment-template")
 
 
