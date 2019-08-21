@@ -112,6 +112,15 @@ def openstack(extra_args):
     run_in_container(['openstack {}'.format(extra_args)])
 
 
+@main.command('helm', context_settings={"ignore_unknown_options": True})
+@click.argument('extra_args', nargs=-1, type=click.UNPROCESSED, callback=_fix_extra_args)
+def helm(extra_args):
+    """Helm runner"""
+    logging.info("""Running helm with arguments: %s""", extra_args)
+    check_version(PACKAGE_VERSION)
+    run_in_container([f'helm {extra_args}'])
+
+
 @main.command('provision')
 @click.argument('playbook')
 def provision(playbook):
@@ -144,6 +153,10 @@ def run_in_container(commands):
     container_wd = '/mnt/deployment/'
 
     assert isinstance(commands, list)
+
+    if os.path.isfile('./kube_config_cluster.yml'):
+        env.append('KUBECONFIG=/mnt/deployment/kube_config_cluster.yml')
+    env.append('HELM_HOME=/mnt/deployment/.helm')
 
     commands_as_string = " && ".join(commands)
     runner = client.containers.run(
