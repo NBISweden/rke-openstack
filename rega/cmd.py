@@ -42,7 +42,6 @@ def init(directory, image):
               envvar='REGA_PROVISIONER_IMG')
 def version(image):
     """Outputs the version of the target provisioning container along with the original and current package versions."""
-    check_environment()
 
     with open('.version', 'r') as version_file:
         env_package = version_file.readline()
@@ -67,7 +66,6 @@ def version(image):
 def plan(image, modules, backend, config):
     """Creates a Terraform execution plan with the necessary actions to achieve the desired state."""
     logging.info("""Creating execution plan for {} modules""".format(modules))
-    check_environment()
     check_version(PACKAGE_VERSION)
     terraform_plan(modules, image, backend, config)
 
@@ -87,7 +85,6 @@ def plan(image, modules, backend, config):
 def apply(image, modules, backend, config):
     """Applies the Terraform plan to spawn the desired resources."""
     logging.info("""Applying setup using mode {}""".format(modules))
-    check_environment()
     check_version(PACKAGE_VERSION)
     apply_tf_modules(modules, image, backend, config)
 
@@ -103,7 +100,6 @@ def destroy(image, modules):
     """Releases the previously requested resources."""
     logging.info("""Destroying the infrastructure using mode {}""".format(modules))
     tf_modules = get_tf_modules(modules)
-    check_environment()
     check_version(PACKAGE_VERSION)
     run_in_container(['terraform destroy -force {}'.format(tf_modules)], image)
 
@@ -116,7 +112,6 @@ def destroy(image, modules):
 def terraform(extra_args, image):
     """Executes the terraform command in the provisioner container with the provided args."""
     logging.info("""Running terraform with arguments: {}""".format(extra_args))
-    check_environment()
     check_version(PACKAGE_VERSION)
     run_in_container(['terraform {}'.format(extra_args)], image)
 
@@ -129,7 +124,6 @@ def terraform(extra_args, image):
 def openstack(extra_args, image):
     """Executes the openstack command in the provisioner container with the provided args."""
     logging.info("""Running openstack with arguments: {}""".format(extra_args))
-    check_environment()
     check_version(PACKAGE_VERSION)
     run_in_container(['openstack {}'.format(extra_args)], image)
 
@@ -141,7 +135,6 @@ def openstack(extra_args, image):
               help='Docker image used for provisioning')
 def provision(image, extra_args):
     """Executes the Ansible playbook specified as an argument."""
-    check_environment()
     check_version(PACKAGE_VERSION)
     generate_vars_file()
     run_ansible(extra_args, image)
@@ -161,6 +154,8 @@ def download_image(client, image):
 
 def run_in_container(commands, image):
     """Executes a sequence of shell commands in a Docker container."""
+    check_environment()
+
     client = docker.from_env()
     download_image(client, image)
     env = list(filter_vars(os.environ))
