@@ -164,7 +164,8 @@ def run_in_container(commands):
     )
 
     for line in runner.logs(stream=True, follow=True):
-        print(line.decode())
+        # No need to add newlines since line already has them, so end="".
+        print(line.decode(), end="")
 
     result = runner.wait()
     exit_code = result.get('StatusCode', 1)
