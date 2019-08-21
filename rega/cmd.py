@@ -367,3 +367,7 @@ def filter_vars(seq):
         elif key.startswith('OS_'):
             yield key + '=' + val
             yield 'TF_VAR_' + key.lower() + '=' + val
+
+
+if __name__ == '__main__':
+    main()
