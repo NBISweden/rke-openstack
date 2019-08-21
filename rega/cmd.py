@@ -128,7 +128,7 @@ def download_image(client):
     try:
         client.images.pull(DOCKER_IMAGE)
     except docker.errors.APIError:
-        print("### ERROR ### Unable to pull the image {}. Does it exist?".format(DOCKER_IMAGE))
+        sys.stderr.write("### ERROR ### Unable to pull the image {}. Does it exist?\n".format(DOCKER_IMAGE))
         sys.exit(1)
 
 
