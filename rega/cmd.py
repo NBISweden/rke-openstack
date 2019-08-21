@@ -64,7 +64,6 @@ def version():
 def plan(modules, backend, config):
     """Creates a Terraform execution plan with the necessary actions to achieve the desired state."""
     logging.info("""Creating execution plan for %s modules""", modules)
-    check_version(PACKAGE_VERSION)
     terraform_plan(modules, backend, config)
 
 
@@ -80,7 +79,6 @@ def plan(modules, backend, config):
 def apply(modules, backend, config):
     """Applies the Terraform plan to spawn the desired resources."""
     logging.info("""Applying setup using mode %s""", modules)
-    check_version(PACKAGE_VERSION)
     apply_tf_modules(modules, backend, config)
 
 
@@ -92,7 +90,6 @@ def destroy(modules):
     """Releases the previously requested resources."""
     logging.info("""Destroying the infrastructure using mode %s""", modules)
     tf_modules = get_tf_modules(modules)
-    check_version(PACKAGE_VERSION)
     run_in_container(['terraform destroy -force {}'.format(tf_modules)])
 
 
@@ -106,7 +103,6 @@ def _fix_extra_args(ctx, param, value):
 def terraform(extra_args):
     """Executes the terraform command in the provisioner container with the provided args."""
     logging.info("""Running terraform with arguments: %s""", extra_args)
-    check_version(PACKAGE_VERSION)
     run_in_container([f'terraform {extra_args}'])
 
 
@@ -115,7 +111,6 @@ def terraform(extra_args):
 def openstack(extra_args):
     """Executes the openstack command in the provisioner container with the provided args."""
     logging.info("""Running openstack with arguments: %s""", extra_args)
-    check_version(PACKAGE_VERSION)
     run_in_container(['openstack {}'.format(extra_args)])
 
 
@@ -123,7 +118,6 @@ def openstack(extra_args):
 @click.argument('playbook')
 def provision(playbook):
     """Executes the Ansible playbook specified as an argument."""
-    check_version(PACKAGE_VERSION)
     generate_vars_file()
     run_ansible(playbook)
 
@@ -142,6 +136,7 @@ def download_image(client):
 
 def run_in_container(commands):
     """Executes a sequence of shell commands in a Docker container."""
+    check_version(PACKAGE_VERSION)
     check_environment()
 
     client = docker.from_env()
@@ -276,13 +271,14 @@ def check_environment():
         sys.stderr.write("### ERROR ### terraform.tfvars not found. Please check you are in your environment folder\n")
         sys.exit(1)
 
+
 def deployment_template_dir():
     """Get the directory of the deployment template"""
     return pkg_resources.resource_filename(__name__, "deployment-template")
 
 
 def check_version(target_package):
-    """Prints out current and original package versions"""
+    """Checks whether the version used to initiate the current deployment is the same as the installed one"""
     with open('.version', 'r') as version_file:
         env_package = version_file.readline()
 
@@ -292,8 +288,6 @@ def check_version(target_package):
     if env_package != target_package:
         sys.stderr.write("### WARNING ### The rega environment was created with a different package version\n")
         print(t)
-    else:
-        logging.info("The rega environment's package version matches with the original version\n")
 
 
 def create_key_pair():
