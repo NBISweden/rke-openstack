@@ -149,6 +149,9 @@ def provision(image, extra_args):
 
 def download_image(client, image):
     """Attempts to download the target Docker image."""
+    if client.images.get(image):
+        # We already have the image, won't even try to pull it
+        return
     try:
         client.images.pull(image)
     except docker.errors.APIError:
