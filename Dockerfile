@@ -4,6 +4,7 @@ FROM ubuntu:bionic-20190204
 ENV TERRAFORM_VERSION=0.12.5
 ENV ANSIBLE_VERSION=2.8.1
 ENV OPENSTACKCLIENT_VERSION=3.17.0
+ENV HELM_VERSION=2.14.3
 # Terraform plugin versions
 ENV PLUGIN_OPENSTACK=1.20.0
 ENV PLUGIN_RKE=0.13.0
@@ -42,6 +43,13 @@ RUN curl "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terrafor
     "terraform_${TERRAFORM_VERSION}_linux_amd64.zip" && \
     unzip "terraform_${TERRAFORM_VERSION}_linux_amd64.zip" -d /bin && \
     rm -f "terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+
+# Install Helm
+RUN curl "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" > \
+    "helm-v${HELM_VERSION}-linux-amd64.tar.gz" && \
+    tar xzf "helm-v${HELM_VERSION}-linux-amd64.tar.gz" && \
+    mv linux-amd64/helm /usr/local/bin/helm && \
+    rm -rf "linux-amd64" "helm-v${HELM_VERSION}-linux-amd64.tar.gz"
 
 # Install Terraform plugins
 RUN mkdir -p /terraform_plugins
