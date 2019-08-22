@@ -73,7 +73,7 @@ variable "ignore_docker_version" {
 
 variable "kubernetes_version" {
   description = "Kubernetes version (should be RKE v0.2.x compliant)"
-  default     = "v1.14.3-rancher1-1"
+  default     = "v1.14.6-rancher1-1"
 }
 
 variable "write_kube_config_cluster" {
