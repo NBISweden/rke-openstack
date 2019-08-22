@@ -42,7 +42,7 @@ RUN apt update -y && \
 # Install Terraform
 RUN curl "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip" > \
     "terraform_${TERRAFORM_VERSION}_linux_amd64.zip" && \
-    unzip "terraform_${TERRAFORM_VERSION}_linux_amd64.zip" -d /bin && \
+    unzip "terraform_${TERRAFORM_VERSION}_linux_amd64.zip" -d /usr/local/bin && \
     rm -f "terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
 
 # Install Helm
