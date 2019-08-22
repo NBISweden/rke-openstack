@@ -121,6 +121,15 @@ def helm(extra_args):
     run_in_container([f'helm {extra_args}'])
 
 
+@main.command('kubectl', context_settings={"ignore_unknown_options": True})
+@click.argument('extra_args', nargs=-1, type=click.UNPROCESSED, callback=_fix_extra_args)
+def kubectl(extra_args):
+    """Kubectl runner"""
+    logging.info("""Running kubectl with arguments: %s""", extra_args)
+    check_version(PACKAGE_VERSION)
+    run_in_container([f'kubectl {extra_args}'])
+
+
 @main.command('provision')
 @click.argument('playbook')
 def provision(playbook):
