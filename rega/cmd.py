@@ -144,14 +144,15 @@ def provision(playbook):
 
 def download_image(client):
     """Attempts to download the target Docker image."""
-    if client.images.get(DOCKER_IMAGE):
-        # We already have the image, won't even try to pull it
-        return
     try:
-        client.images.pull(DOCKER_IMAGE)
-    except docker.errors.APIError:
-        sys.stderr.write("### ERROR ### Unable to pull the image {}. Does it exist?\n".format(DOCKER_IMAGE))
-        sys.exit(1)
+        client.images.get(DOCKER_IMAGE)
+    except docker.errors.ImageNotFound:
+        logging.info("""Image %s not present locally, trying to pull...""", DOCKER_IMAGE)
+        try:
+            client.images.pull(DOCKER_IMAGE)
+        except docker.errors.APIError:
+            sys.stderr.write("### ERROR ### Unable to pull the image {}. Does it exist?\n".format(DOCKER_IMAGE))
+            sys.exit(1)
 
 
 def run_in_container(commands):
