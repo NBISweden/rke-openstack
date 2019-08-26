@@ -42,8 +42,12 @@ def init(directory):
 def version():
     """Outputs the version of the target provisioning container along with the original and current package versions."""
 
-    with open('.version', 'r') as version_file:
-        env_package = version_file.readline()
+    try:
+        with open('.version', 'r') as version_file:
+            env_package = version_file.readline()
+    except FileNotFoundError:
+        sys.stderr.write("### ERROR ### The version file of the environment was not found.")
+        sys.exit(1)
 
     t = PrettyTable(['Original package version', 'Current package version', 'Image version'])
     t.add_row([env_package, PACKAGE_VERSION, DOCKER_IMAGE])
@@ -299,8 +303,12 @@ def deployment_template_dir():
 
 def check_version(target_package):
     """Checks whether the version used to initiate the current deployment is the same as the installed one"""
-    with open('.version', 'r') as version_file:
-        env_package = version_file.readline()
+    try:
+        with open('.version', 'r') as version_file:
+            env_package = version_file.readline()
+    except FileNotFoundError:
+        sys.stderr.write("### ERROR ### The version file of the environment was not found.")
+        sys.exit(1)
 
     t = PrettyTable(['Original', 'Current'])
     t.add_row([env_package, target_package])
