@@ -42,8 +42,12 @@ def init(directory):
 def version():
     """Outputs the version of the target provisioning container along with the original and current package versions."""
 
-    with open('.version', 'r') as version_file:
-        env_package = version_file.readline()
+    try:
+        with open('.version', 'r') as version_file:
+            env_package = version_file.readline()
+    except FileNotFoundError:
+        sys.stderr.write("### ERROR ### The version file of the environment was not found.")
+        sys.exit(1)
 
     t = PrettyTable(['Original package version', 'Current package version', 'Image version'])
     t.add_row([env_package, PACKAGE_VERSION, DOCKER_IMAGE])
@@ -112,6 +116,24 @@ def openstack(extra_args):
     run_in_container(['openstack {}'.format(extra_args)])
 
 
+@main.command('helm', context_settings={"ignore_unknown_options": True})
+@click.argument('extra_args', nargs=-1, type=click.UNPROCESSED, callback=_fix_extra_args)
+def helm(extra_args):
+    """Helm runner"""
+    logging.info("""Running helm with arguments: %s""", extra_args)
+    check_version(PACKAGE_VERSION)
+    run_in_container([f'helm {extra_args}'])
+
+
+@main.command('kubectl', context_settings={"ignore_unknown_options": True})
+@click.argument('extra_args', nargs=-1, type=click.UNPROCESSED, callback=_fix_extra_args)
+def kubectl(extra_args):
+    """Kubectl runner"""
+    logging.info("""Running kubectl with arguments: %s""", extra_args)
+    check_version(PACKAGE_VERSION)
+    run_in_container([f'kubectl {extra_args}'])
+
+
 @main.command('provision')
 @click.argument('playbook')
 def provision(playbook):
@@ -122,14 +144,15 @@ def provision(playbook):
 
 def download_image(client):
     """Attempts to download the target Docker image."""
-    if client.images.get(DOCKER_IMAGE):
-        # We already have the image, won't even try to pull it
-        return
     try:
-        client.images.pull(DOCKER_IMAGE)
-    except docker.errors.APIError:
-        sys.stderr.write("### ERROR ### Unable to pull the image {}. Does it exist?\n".format(DOCKER_IMAGE))
-        sys.exit(1)
+        client.images.get(DOCKER_IMAGE)
+    except docker.errors.ImageNotFound:
+        logging.info("""Image %s not present locally, trying to pull...""", DOCKER_IMAGE)
+        try:
+            client.images.pull(DOCKER_IMAGE)
+        except docker.errors.APIError:
+            sys.stderr.write("### ERROR ### Unable to pull the image {}. Does it exist?\n".format(DOCKER_IMAGE))
+            sys.exit(1)
 
 
 def run_in_container(commands):
@@ -144,6 +167,10 @@ def run_in_container(commands):
     container_wd = '/mnt/deployment/'
 
     assert isinstance(commands, list)
+
+    if os.path.isfile('./kube_config_cluster.yml'):
+        env.append('KUBECONFIG=/mnt/deployment/kube_config_cluster.yml')
+    env.append('HELM_HOME=/mnt/deployment/.helm')
 
     commands_as_string = " && ".join(commands)
     runner = client.containers.run(
@@ -277,8 +304,12 @@ def deployment_template_dir():
 
 def check_version(target_package):
     """Checks whether the version used to initiate the current deployment is the same as the installed one"""
-    with open('.version', 'r') as version_file:
-        env_package = version_file.readline()
+    try:
+        with open('.version', 'r') as version_file:
+            env_package = version_file.readline()
+    except FileNotFoundError:
+        sys.stderr.write("### ERROR ### The version file of the environment was not found.")
+        sys.exit(1)
 
     t = PrettyTable(['Original', 'Current'])
     t.add_row([env_package, target_package])

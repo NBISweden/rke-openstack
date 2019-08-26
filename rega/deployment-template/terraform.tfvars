@@ -16,7 +16,7 @@ service_count=2
 edge_flavor_name="ssc.medium"
 edge_count=1
 # Please check that the Kubernetes version is RKE 0.2.x compliant
-kubernetes_version="v1.14.3-rancher1-1" 
+kubernetes_version="v1.14.6-rancher1-1"
 
 # Security groups
 allowed_ingress_tcp={
