@@ -1,12 +1,13 @@
 import sys
+import os
+import logging
+from distutils import dir_util
+
 import yaml
 import hcl
-import os
 import click
 import docker
-import logging
 import pkg_resources
-from distutils import dir_util
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
@@ -15,47 +16,41 @@ from prettytable import PrettyTable
 
 logging.basicConfig(level=logging.INFO)
 PACKAGE_VERSION = pkg_resources.get_distribution("rega").version
-DEFAULT_IMAGE = f'nbisweden/rega:release-v{PACKAGE_VERSION}'
+DOCKER_IMAGE = f'nbisweden/rega:release-v{PACKAGE_VERSION}'
 
 
 @click.group()
-def main():
+@click.option('-I', '--image', default=DOCKER_IMAGE,
+              envvar='REGA_PROVISIONER_IMG',
+              help='Docker image used for provisioning')
+def main(image):
     """REGA is a tool for provisioning RKE clusters."""
+    global DOCKER_IMAGE
+    DOCKER_IMAGE = image
 
 
 @main.command('init')
 @click.argument('directory')
-@click.option('-I', '--image', default=DEFAULT_IMAGE,
-              envvar='REGA_PROVISIONER_IMG',
-              help='Docker image used for provisioning')
-def init(directory, image):
+def init(directory):
     """Initialises a new REGA environment."""
-    logging.info("""Initilising a new environment in {}""".format(directory))
-    client = docker.from_env()
-    download_image(client, image)
+    logging.info("""Initilising a new environment in %s""", directory)
     create_deployment(directory)
-    logging.info("""Environment initialised. Navigate to the {} folder and update the terraform.tfvars file with your configuration""".format(directory))
+    logging.info("""Environment initialised. Navigate to the %s folder and update the terraform.tfvars file with your configuration""", directory)
 
 
 @main.command('version')
-@click.option('-I', '--image', default=DEFAULT_IMAGE,
-              envvar='REGA_PROVISIONER_IMG')
-def version(image):
+def version():
     """Outputs the version of the target provisioning container along with the original and current package versions."""
-    check_environment()
 
     with open('.version', 'r') as version_file:
         env_package = version_file.readline()
 
     t = PrettyTable(['Original package version', 'Current package version', 'Image version'])
-    t.add_row([env_package, PACKAGE_VERSION, image])
+    t.add_row([env_package, PACKAGE_VERSION, DOCKER_IMAGE])
     print(t)
 
 
 @main.command('plan')
-@click.option('-I', '--image', default=DEFAULT_IMAGE,
-              envvar='REGA_PROVISIONER_IMG',
-              help='Docker image used for provisioning')
 @click.option('-M', '--modules', default='all',
               type=click.Choice(['infra', 'all']),
               help='Options are: "infra" and "all"')
@@ -64,18 +59,13 @@ def version(image):
               help='Options are: "local", "s3" and "swift"')
 @click.option('-C', '--config', default="backend.cfg",
               help='File used to define backend config')
-def plan(image, modules, backend, config):
+def plan(modules, backend, config):
     """Creates a Terraform execution plan with the necessary actions to achieve the desired state."""
-    logging.info("""Creating execution plan for {} modules""".format(modules))
-    check_environment()
-    check_version(PACKAGE_VERSION)
-    terraform_plan(modules, image, backend, config)
+    logging.info("""Creating execution plan for %s modules""", modules)
+    terraform_plan(modules, backend, config)
 
 
 @main.command('apply')
-@click.option('-I', '--image', default=DEFAULT_IMAGE,
-              envvar='REGA_PROVISIONER_IMG',
-              help='Docker image used for provisioning')
 @click.option('-M', '--modules', default='all',
               type=click.Choice(['infra', 'all']),
               help='Options are: "infra" and "all"')
@@ -84,82 +74,71 @@ def plan(image, modules, backend, config):
               help='Options are: "local", "s3" and "swift"')
 @click.option('-C', '--config', default="backend.cfg",
               help='File used to define backend config')
-def apply(image, modules, backend, config):
+def apply(modules, backend, config):
     """Applies the Terraform plan to spawn the desired resources."""
-    logging.info("""Applying setup using mode {}""".format(modules))
-    check_environment()
-    check_version(PACKAGE_VERSION)
-    apply_tf_modules(modules, image, backend, config)
+    logging.info("""Applying setup using mode %s""", modules)
+    apply_tf_modules(modules, backend, config)
 
 
 @main.command('destroy')
-@click.option('-I', '--image', default=DEFAULT_IMAGE,
-              envvar='REGA_PROVISIONER_IMG',
-              help='Docker image used for provisioning')
 @click.option('-M', '--modules', default='all',
               type=click.Choice(['infra', 'k8s', 'all']),
               help='Options are: "infra", "k8s" and "all"')
-def destroy(image, modules):
+def destroy(modules):
     """Releases the previously requested resources."""
-    logging.info("""Destroying the infrastructure using mode {}""".format(modules))
+    logging.info("""Destroying the infrastructure using mode %s""", modules)
     tf_modules = get_tf_modules(modules)
-    check_environment()
-    check_version(PACKAGE_VERSION)
-    run_in_container(['terraform destroy -force {}'.format(tf_modules)], image)
+    run_in_container(['terraform destroy -force {}'.format(tf_modules)])
 
 
-@main.command('terraform')
-@click.argument('extra_args')
-@click.option('-I', '--image', default=DEFAULT_IMAGE,
-              envvar='REGA_PROVISIONER_IMG',
-              help='Docker image used for provisioning')
-def terraform(extra_args, image):
+def _fix_extra_args(ctx, param, value):
+    """Callback to make sure the extra_args is a string and not a tuple"""
+    return " ".join(value)
+
+
+@main.command('terraform', context_settings={"ignore_unknown_options": True})
+@click.argument('extra_args', nargs=-1, type=click.UNPROCESSED, callback=_fix_extra_args)
+def terraform(extra_args):
     """Executes the terraform command in the provisioner container with the provided args."""
-    logging.info("""Running terraform with arguments: {}""".format(extra_args))
-    check_environment()
-    check_version(PACKAGE_VERSION)
-    run_in_container(['terraform {}'.format(extra_args)], image)
+    logging.info("""Running terraform with arguments: %s""", extra_args)
+    run_in_container([f'terraform {extra_args}'])
 
 
-@main.command('openstack')
-@click.argument('extra_args')
-@click.option('-I', '--image', default=DEFAULT_IMAGE,
-              envvar='REGA_PROVISIONER_IMG',
-              help='Docker image used for provisioning')
-def openstack(extra_args, image):
+@main.command('openstack', context_settings={"ignore_unknown_options": True})
+@click.argument('extra_args', nargs=-1, type=click.UNPROCESSED, callback=_fix_extra_args)
+def openstack(extra_args):
     """Executes the openstack command in the provisioner container with the provided args."""
-    logging.info("""Running openstack with arguments: {}""".format(extra_args))
-    check_environment()
-    check_version(PACKAGE_VERSION)
-    run_in_container(['openstack {}'.format(extra_args)], image)
+    logging.info("""Running openstack with arguments: %s""", extra_args)
+    run_in_container(['openstack {}'.format(extra_args)])
 
 
 @main.command('provision')
-@click.argument('extra_args')
-@click.option('-I', '--image', default=DEFAULT_IMAGE,
-              envvar='REGA_PROVISIONER_IMG',
-              help='Docker image used for provisioning')
-def provision(image, extra_args):
+@click.argument('playbook')
+def provision(playbook):
     """Executes the Ansible playbook specified as an argument."""
-    check_environment()
-    check_version(PACKAGE_VERSION)
     generate_vars_file()
-    run_ansible(extra_args, image)
+    run_ansible(playbook)
 
 
-def download_image(client, image):
+def download_image(client):
     """Attempts to download the target Docker image."""
+    if client.images.get(DOCKER_IMAGE):
+        # We already have the image, won't even try to pull it
+        return
     try:
-        client.images.pull(image)
+        client.images.pull(DOCKER_IMAGE)
     except docker.errors.APIError:
-        print("### ERROR ### Unable to pull the image {}. Does it exist?".format(image))
+        sys.stderr.write("### ERROR ### Unable to pull the image {}. Does it exist?\n".format(DOCKER_IMAGE))
         sys.exit(1)
 
 
-def run_in_container(commands, image):
+def run_in_container(commands):
     """Executes a sequence of shell commands in a Docker container."""
+    check_version(PACKAGE_VERSION)
+    check_environment()
+
     client = docker.from_env()
-    download_image(client, image)
+    download_image(client)
     env = list(filter_vars(os.environ))
     volume_mount = {os.getcwd(): {'bind': '/mnt/deployment/', 'mode': 'rw'}}
     container_wd = '/mnt/deployment/'
@@ -168,7 +147,7 @@ def run_in_container(commands, image):
 
     commands_as_string = " && ".join(commands)
     runner = client.containers.run(
-        image,
+        DOCKER_IMAGE,
         volumes=volume_mount,
         environment=env,
         working_dir=container_wd,
@@ -178,7 +157,8 @@ def run_in_container(commands, image):
     )
 
     for line in runner.logs(stream=True, follow=True):
-        print(line.decode())
+        # No need to add newlines since line already has them, so end="".
+        print(line.decode(), end="")
 
     result = runner.wait()
     exit_code = result.get('StatusCode', 1)
@@ -206,17 +186,17 @@ def render(template_path, data, extensions=None, strict=False):
     return output.encode('utf-8')
 
 
-def apply_tf_modules(target, image, backend, config):
+def apply_tf_modules(target, backend, config):
     """Applies the correct target to run Terraform."""
     if target == 'infra':
-        terraform_apply(get_tf_modules(target), image, backend, config)
+        terraform_apply(get_tf_modules(target), backend, config)
     elif target == 'all':
-        infra_exit_code = terraform_apply(get_tf_modules('infra'), image, backend, config)
+        infra_exit_code = terraform_apply(get_tf_modules('infra'), backend, config)
         if infra_exit_code == 0:
             generate_vars_file()
-            ansible_exit_code = run_ansible('setup.yml', image)
+            ansible_exit_code = run_ansible('setup.yml')
             if ansible_exit_code == 0:
-                terraform_apply(get_tf_modules('k8s'), image, backend, config)
+                terraform_apply(get_tf_modules('k8s'), backend, config)
 
 
 def get_tf_modules(target):
@@ -228,24 +208,24 @@ def get_tf_modules(target):
 
     if target == 'infra':
         return infra_modules
-    elif target == 'k8s':
+    if target == 'k8s':
         return k8s_modules
-    elif target == 'all':
+    if target == 'all':
         return ''
 
 
-def terraform_plan(target, image, backend, config):
+def terraform_plan(target, backend, config):
     """Executes Terraform plan."""
     setup_tf_backend(backend)
     return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
-                             'terraform plan {}'.format(get_tf_modules(target))], image)
+                             'terraform plan {}'.format(get_tf_modules(target))])
 
 
-def terraform_apply(modules, image, backend, config):
+def terraform_apply(modules, backend, config):
     """Executes Terraform apply."""
     setup_tf_backend(backend)
     return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
-                             'terraform apply -auto-approve {}'.format(modules)], image)
+                             'terraform apply -auto-approve {}'.format(modules)])
 
 
 def setup_tf_backend(backend):
@@ -257,9 +237,9 @@ def setup_tf_backend(backend):
     main_file.close()
 
 
-def run_ansible(playbook, image):
+def run_ansible(playbook):
     """Runs a given ansible playbook."""
-    return run_in_container(['ansible-playbook playbooks/{}'.format(playbook)], image)
+    return run_in_container(['ansible-playbook playbooks/{}'.format(playbook)])
 
 
 def create_deployment(directory):
@@ -289,12 +269,14 @@ def check_environment():
         sys.stderr.write("### ERROR ### terraform.tfvars not found. Please check you are in your environment folder\n")
         sys.exit(1)
 
+
 def deployment_template_dir():
+    """Get the directory of the deployment template"""
     return pkg_resources.resource_filename(__name__, "deployment-template")
 
 
 def check_version(target_package):
-    """Prints out current and original package versions"""
+    """Checks whether the version used to initiate the current deployment is the same as the installed one"""
     with open('.version', 'r') as version_file:
         env_package = version_file.readline()
 
@@ -304,8 +286,6 @@ def check_version(target_package):
     if env_package != target_package:
         sys.stderr.write("### WARNING ### The rega environment was created with a different package version\n")
         print(t)
-    else:
-        logging.info("The rega environment's package version matches with the original version\n")
 
 
 def create_key_pair():
@@ -369,3 +349,7 @@ def filter_vars(seq):
         elif key.startswith('OS_'):
             yield key + '=' + val
             yield 'TF_VAR_' + key.lower() + '=' + val
+
+
+if __name__ == '__main__':
+    main()
