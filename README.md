@@ -61,7 +61,7 @@ kubernetes_version="v1.14.6-rancher1-1"
 allowed_ingress_tcp={
   # These are the ports you need to work with kubernetes and rancher from your
   # machine.
-  #'<YOUR CIDR>' = [22, 6443, 80, 443, 10250]
+  #"<YOUR CIDR>" = [22, 6443, 80, 443, 10250]
 }
 allowed_ingress_udp={}
 secgroups = []
