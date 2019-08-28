@@ -99,7 +99,7 @@ rega apply --modules=[infra,all] --backend=[local,s3,swift] [--config=<backend c
 Once the deployment is done, you may explore the cluster:
 
 ```
-kubectl get nodes -o wide
+rega kubectl get nodes -o wide
 ```
 
 
