@@ -6,8 +6,6 @@ This CLI allows you to install vanilla Kubernetes in a cluster of machines creat
 On your machine you need the following requirements:
 
 - [Docker](https://www.docker.com/)
-- [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
-- [Helm](https://github.com/helm/helm/releases)
 - [Python 3.7+](https://www.python.org/downloads/)
 - Set up the environment by [sourcing the OpenStack RC](https://docs.openstack.org/zh_CN/user-guide/common/cli-set-environment-variables-using-openstack-rc.html) file for your project
 
@@ -98,11 +96,10 @@ To spawn the infrastructure execute the `apply` command with the desired modules
 rega apply --modules=[infra,all] --backend=[local,s3,swift] [--config=<backend config file>]
 ```
 
-Once the deployment is done, you can configure `kubectl` and explore the cluster:
+Once the deployment is done, you may explore the cluster:
 
 ```
-export KUBECONFIG="$PWD/kube_config_cluster.yml"
-kubectl get nodes
+rega kubectl get nodes -o wide
 ```
 
 
@@ -127,7 +124,7 @@ rega destroy --modules=[infra,k8s,all]
 Prior to installing Helm charts, you need to have Tiller up and running in your cluster:
 
 ```
-helm init --service-account terraform-tiller
+rega helm init --service-account terraform-tiller
 ```
 
 ## Rancher Server
@@ -135,19 +132,19 @@ helm init --service-account terraform-tiller
 In order to manage the cluster from the Rancher UI, you can install `cert-manager` and the `Rancher server` using a Helm chart. After initialising Helm, you need to add the Helm chart repository that contains charts to install Rancher:
 
 ```
-helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
+rega helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
 ```
 
 Rancher relies on cert-manager version v0.5.2 from the official charts repository. To install it use:
 ```
-helm install stable/cert-manager \
+rega helm install stable/cert-manager \
   --name cert-manager \
   --namespace kube-system \
   --version v0.5.2
 ```
 And initialise the Rancher server by:
 ```
-helm install rancher-stable/rancher \
+rega helm install rancher-stable/rancher \
   --name rancher \
   --namespace cattle-system \
   --set hostname=ega.dash.<edge-ip>.nip.io
