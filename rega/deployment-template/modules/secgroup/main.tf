@@ -3,6 +3,26 @@ resource "openstack_networking_secgroup_v2" "secgroup" {
   description = "Security group for RKE"
 }
 
+resource "openstack_networking_secgroup_rule_v2" "internal_tcp" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  port_range_min    = "1"
+  port_range_max    = "64535"
+  remote_group_id   = openstack_networking_secgroup_v2.secgroup.id
+  security_group_id = openstack_networking_secgroup_v2.secgroup.id
+}
+
+resource "openstack_networking_secgroup_rule_v2" "internal_udp" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "udp"
+  port_range_min    = "1"
+  port_range_max    = "64535"
+  remote_group_id   = openstack_networking_secgroup_v2.secgroup.id
+  security_group_id = openstack_networking_secgroup_v2.secgroup.id
+}
+
 locals {
   expanded_tcp_ingresses = flatten([
     for ip, ports in var.allowed_ingress_tcp:
