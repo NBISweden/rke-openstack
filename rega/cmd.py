@@ -85,14 +85,10 @@ def apply(modules, backend, config):
 
 
 @main.command('destroy')
-@click.option('-M', '--modules', default='all',
-              type=click.Choice(['infra', 'k8s', 'all']),
-              help='Options are: "infra", "k8s" and "all"')
-def destroy(modules):
+def destroy():
     """Releases the previously requested resources."""
-    logging.info("""Destroying the infrastructure using mode %s""", modules)
-    tf_modules = get_tf_modules(modules)
-    run_in_container(['terraform destroy -force {}'.format(tf_modules)])
+    logging.info("""Destroying the infrastructure...""")
+    run_in_container(['terraform destroy -force'])
 
 
 def _fix_extra_args(ctx, param, value):
