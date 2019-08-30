@@ -235,8 +235,6 @@ def get_tf_modules(target):
         return infra_modules
     if target == 'k8s':
         return k8s_modules
-    if target == 'all':
-        return ''
 
 
 def terraform_plan(target, backend, config):
