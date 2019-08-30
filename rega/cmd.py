@@ -244,11 +244,11 @@ def terraform_plan(target, backend, config):
                              'terraform plan {}'.format(get_tf_modules(target))])
 
 
-def terraform_apply(modules, backend, config):
+def terraform_apply(modules, backend, config, parallelism=10):
     """Executes Terraform apply."""
     setup_tf_backend(backend)
     return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
-                             'terraform apply -auto-approve {}'.format(modules)])
+                             'terraform apply -parallelism={} -auto-approve {}'.format(parallelism, modules)])
 
 
 def setup_tf_backend(backend):
