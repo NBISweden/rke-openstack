@@ -78,7 +78,7 @@ module "edge" {
 locals {
   rke_cluster_deps = flatten([
     join(",", module.edge.associate_floating_ip_id_list),
-    join(",", module.secgroup.rule_id_list), # Other stuff ...
+    join(",", module.secgroup.rule_id_list),
     module.network.interface_id,
   ])
 }
