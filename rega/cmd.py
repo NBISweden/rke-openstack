@@ -212,10 +212,12 @@ def render(template_path, data, extensions=None, strict=False):
 def apply_tf_modules(target, backend, config):
     """Applies the correct target to run Terraform."""
     if target == 'infra':
+        terraform_apply('-target=module.secgroup', backend, config, parallelism=1)
         terraform_apply(get_tf_modules(target), backend, config)
     elif target == 'all':
+        secgroup_exit_code = terraform_apply('-target=module.secgroup', backend, config, parallelism=1)
         infra_exit_code = terraform_apply(get_tf_modules('infra'), backend, config)
-        if infra_exit_code == 0:
+        if infra_exit_code == 0 and secgroup_exit_code == 0:
             generate_vars_file()
             ansible_exit_code = run_ansible('setup.yml')
             if ansible_exit_code == 0:
