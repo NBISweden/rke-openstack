@@ -113,10 +113,10 @@ rega provision setup.yml
 
 ## Releasing resources
 
-You can release the resources by running `destroy` with the desired modules. By default all modules will be deleted.
+You can release the resources by running `destroy`:
 
 ```
-rega destroy --modules=[infra,k8s,all]
+rega destroy
 ```
 
 ## Starting Tiller
