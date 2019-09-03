@@ -5,6 +5,6 @@ output "secgroup_name" {
 
 output "rule_id_list" {
   description = "Security rule resource ID list"
-  value       = flatten([concat(openstack_networking_secgroup_rule_v2.ingress_tcp.*.id, openstack_networking_secgroup_rule_v2.ingress_udp.*.id)])
+  value       = flatten([concat(list(openstack_networking_secgroup_rule_v2.internal_tcp.id), list(openstack_networking_secgroup_rule_v2.internal_tcp.id), openstack_networking_secgroup_rule_v2.ingress_tcp.*.id, openstack_networking_secgroup_rule_v2.ingress_udp.*.id)])
 }
 

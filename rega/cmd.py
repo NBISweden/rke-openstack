@@ -85,14 +85,10 @@ def apply(modules, backend, config):
 
 
 @main.command('destroy')
-@click.option('-M', '--modules', default='all',
-              type=click.Choice(['infra', 'k8s', 'all']),
-              help='Options are: "infra", "k8s" and "all"')
-def destroy(modules):
+def destroy():
     """Releases the previously requested resources."""
-    logging.info("""Destroying the infrastructure using mode %s""", modules)
-    tf_modules = get_tf_modules(modules)
-    run_in_container(['terraform destroy -force {}'.format(tf_modules)])
+    logging.info("""Destroying the infrastructure...""")
+    run_in_container(['terraform destroy -force'])
 
 
 def _fix_extra_args(ctx, param, value):
@@ -216,10 +212,12 @@ def render(template_path, data, extensions=None, strict=False):
 def apply_tf_modules(target, backend, config):
     """Applies the correct target to run Terraform."""
     if target == 'infra':
+        terraform_apply('-target=module.secgroup', backend, config, parallelism=1)
         terraform_apply(get_tf_modules(target), backend, config)
     elif target == 'all':
+        secgroup_exit_code = terraform_apply('-target=module.secgroup', backend, config, parallelism=1)
         infra_exit_code = terraform_apply(get_tf_modules('infra'), backend, config)
-        if infra_exit_code == 0:
+        if infra_exit_code == 0 and secgroup_exit_code == 0:
             generate_vars_file()
             ansible_exit_code = run_ansible('setup.yml')
             if ansible_exit_code == 0:
@@ -228,8 +226,8 @@ def apply_tf_modules(target, backend, config):
 
 def get_tf_modules(target):
     """Retrieves the target modules to run Terraform."""
-    infra_modules = '-target=module.network -target=module.secgroup\
-                    -target=module.master -target=module.service -target=module.edge\
+    infra_modules = '-target=module.network -target=module.master\
+                    -target=module.service -target=module.edge\
                     -target=module.inventory -target=module.keypair'
     k8s_modules = '-target=module.rke'
 
@@ -237,8 +235,6 @@ def get_tf_modules(target):
         return infra_modules
     if target == 'k8s':
         return k8s_modules
-    if target == 'all':
-        return ''
 
 
 def terraform_plan(target, backend, config):
@@ -248,11 +244,11 @@ def terraform_plan(target, backend, config):
                              'terraform plan {}'.format(get_tf_modules(target))])
 
 
-def terraform_apply(modules, backend, config):
+def terraform_apply(modules, backend, config, parallelism=10):
     """Executes Terraform apply."""
     setup_tf_backend(backend)
     return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
-                             'terraform apply -auto-approve {}'.format(modules)])
+                             'terraform apply -parallelism={} -auto-approve {}'.format(parallelism, modules)])
 
 
 def setup_tf_backend(backend):
