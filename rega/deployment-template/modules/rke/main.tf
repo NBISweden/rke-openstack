@@ -77,12 +77,6 @@ dynamic nodes {
 
   ignore_docker_version = var.ignore_docker_version
   kubernetes_version    = var.kubernetes_version
-
-  # Workaround: make sure resources are created and deleted in the right order
-  provisioner "local-exec" {
-    command = "# ${join(",", var.rke_cluster_deps)}"
-  }
-
   addons = <<EOL
 ---
 kind: StorageClass
