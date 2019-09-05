@@ -88,7 +88,11 @@ def apply(modules, backend, config):
 def destroy():
     """Releases the previously requested resources."""
     logging.info("""Destroying the infrastructure...""")
-    run_in_container(['terraform destroy -force'])
+    modules_k8s = get_tf_modules('k8s')
+    modules_infra = get_tf_modules('infra')
+    run_in_container(['terraform destroy -force {}'.format(modules_k8s)])
+    run_in_container(['terraform destroy -force {}'.format(modules_infra)])
+    run_in_container(['terraform destroy -parallelism=1 -force -target=module.secgroup'])
 
 
 def _fix_extra_args(ctx, param, value):
