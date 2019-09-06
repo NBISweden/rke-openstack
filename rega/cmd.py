@@ -87,7 +87,11 @@ def apply(modules, backend, config):
 @main.command('destroy')
 def destroy():
     """Releases the previously requested resources."""
-    logging.info("""Destroying the infrastructure...""")
+     logging.info("""Destroying the infrastructure...""")
+    
+     # In order for the destruction to work on all our infrastructures we need to
+     # run the different modules separately to avoid terraform hanging while
+     # interacting with the openstack api.
     terraform_destroy(get_tf_modules('k8s'))
     terraform_destroy(get_tf_modules('infra'))
     terraform_destroy(get_tf_modules('network'))
