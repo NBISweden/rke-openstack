@@ -88,11 +88,10 @@ def apply(modules, backend, config):
 def destroy():
     """Releases the previously requested resources."""
     logging.info("""Destroying the infrastructure...""")
-    modules_k8s = get_tf_modules('k8s')
-    modules_infra = get_tf_modules('infra')
-    run_in_container(['terraform destroy -force {}'.format(modules_k8s)])
-    run_in_container(['terraform destroy -force {}'.format(modules_infra)])
-    run_in_container(['terraform destroy -parallelism=1 -force -target=module.secgroup'])
+    terraform_destroy(get_tf_modules('k8s'))
+    terraform_destroy(get_tf_modules('infra'))
+    terraform_destroy(get_tf_modules('network'))
+    terraform_destroy(get_tf_modules('secgroup'), parallelism=1)
 
 
 def _fix_extra_args(ctx, param, value):
