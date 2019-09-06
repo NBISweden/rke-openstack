@@ -43,11 +43,6 @@ variable "write_cluster_yaml" {
   description = "If true cluster.yml will be written locally"
 }
 
-variable "rke_cluster_deps" {
-  type        = list(string)
-  description = "List of resources that will delay creation and deletion of the RKE provisioning resource (provide a resource output for each)"
-}
-
 variable "os_username" {
   description = "Openstack user name"
 }

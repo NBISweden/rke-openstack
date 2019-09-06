@@ -74,22 +74,12 @@ module "edge" {
   assign_floating_ip = var.edge_assign_floating_ip
 }
 
-# Compute dynamic dependencies for RKE provisioning step
-locals {
-  rke_cluster_deps = flatten([
-    join(",", module.edge.associate_floating_ip_id_list),
-    join(",", module.secgroup.rule_id_list),
-    module.network.interface_id,
-  ])
-}
-
 # Provision Kubernetes
 module "rke" {
   source                    = "./modules/rke"
   master_nodes              = module.master.nodes
   edge_nodes                = module.edge.nodes
   service_nodes             = module.service.nodes
-  rke_cluster_deps          = local.rke_cluster_deps
   ssh_bastion_host          = element(module.edge.public_ip_list, 0)
   ssh_user                  = var.ssh_user
   ssh_key                   = var.ssh_key

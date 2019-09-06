@@ -88,7 +88,14 @@ def apply(modules, backend, config):
 def destroy():
     """Releases the previously requested resources."""
     logging.info("""Destroying the infrastructure...""")
-    run_in_container(['terraform destroy -force'])
+
+    # In order for the destruction to work on all our infrastructures we need to
+    # run the different modules separately to avoid terraform hanging while
+    # interacting with the openstack api.
+    terraform_destroy(get_tf_modules('k8s'))
+    terraform_destroy(get_tf_modules('infra'))
+    terraform_destroy(get_tf_modules('network'))
+    terraform_destroy(get_tf_modules('secgroup'), parallelism=1)
 
 
 def _fix_extra_args(ctx, param, value):
@@ -212,12 +219,14 @@ def render(template_path, data, extensions=None, strict=False):
 def apply_tf_modules(target, backend, config):
     """Applies the correct target to run Terraform."""
     if target == 'infra':
-        terraform_apply('-target=module.secgroup', backend, config, parallelism=1)
-        terraform_apply(get_tf_modules(target), backend, config)
+        terraform_apply(get_tf_modules('network'), backend, config)
+        terraform_apply(get_tf_modules('secgroup'), backend, config, parallelism=1)
+        terraform_apply(get_tf_modules('infra'), backend, config)
     elif target == 'all':
-        secgroup_exit_code = terraform_apply('-target=module.secgroup', backend, config, parallelism=1)
+        network_exit_code = terraform_apply(get_tf_modules('network'), backend, config)
+        secgroup_exit_code = terraform_apply(get_tf_modules('secgroup'), backend, config, parallelism=1)
         infra_exit_code = terraform_apply(get_tf_modules('infra'), backend, config)
-        if infra_exit_code == 0 and secgroup_exit_code == 0:
+        if infra_exit_code == 0 and secgroup_exit_code == 0 and network_exit_code == 0:
             generate_vars_file()
             ansible_exit_code = run_ansible('setup.yml')
             if ansible_exit_code == 0:
@@ -226,15 +235,21 @@ def apply_tf_modules(target, backend, config):
 
 def get_tf_modules(target):
     """Retrieves the target modules to run Terraform."""
-    infra_modules = '-target=module.network -target=module.master\
+    infra_modules = '-target=module.master\
                     -target=module.service -target=module.edge\
                     -target=module.inventory -target=module.keypair'
     k8s_modules = '-target=module.rke'
+    secgroup_modules = '-target=module.secgroup'
+    network_modules = '-target=module.network'
 
     if target == 'infra':
         return infra_modules
     if target == 'k8s':
         return k8s_modules
+    if target == 'secgroup':
+        return secgroup_modules
+    if target == 'network':
+        return network_modules
 
 
 def terraform_plan(target, backend, config):
@@ -249,6 +264,11 @@ def terraform_apply(modules, backend, config, parallelism=10):
     setup_tf_backend(backend)
     return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
                              'terraform apply -parallelism={} -auto-approve {}'.format(parallelism, modules)])
+
+
+def terraform_destroy(modules, parallelism=10):
+    """Executes Terraform destroy."""
+    run_in_container(['terraform destroy -parallelism={} -force {}'.format(parallelism, modules)])
 
 
 def setup_tf_backend(backend):
