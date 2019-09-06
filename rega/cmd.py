@@ -229,15 +229,21 @@ def apply_tf_modules(target, backend, config):
 
 def get_tf_modules(target):
     """Retrieves the target modules to run Terraform."""
-    infra_modules = '-target=module.network -target=module.master\
+    infra_modules = '-target=module.master\
                     -target=module.service -target=module.edge\
                     -target=module.inventory -target=module.keypair'
     k8s_modules = '-target=module.rke'
+    secgroup_modules = '-target=module.secgroup'
+    network_modules = '-target=module.network'
 
     if target == 'infra':
         return infra_modules
     if target == 'k8s':
         return k8s_modules
+    if target == 'secgroup':
+        return secgroup_modules
+    if target == 'network':
+        return network_modules
 
 
 def terraform_plan(target, backend, config):
