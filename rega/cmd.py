@@ -262,6 +262,11 @@ def terraform_apply(modules, backend, config, parallelism=10):
                              'terraform apply -parallelism={} -auto-approve {}'.format(parallelism, modules)])
 
 
+def terraform_destroy(modules, parallelism=10):
+    """Executes Terraform destroy."""
+    run_in_container(['terraform destroy -parallelism={} -force {}'.format(parallelism, modules)])
+
+
 def setup_tf_backend(backend):
     """Renders the main.tf file with the chosen backend type."""
     main_out = render('main.j2', {'backend_type': backend})
