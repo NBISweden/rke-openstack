@@ -4,7 +4,6 @@ setup(
     name='rega',
     version='1.5.0',
     packages=['rega'],
-    include_package_data=True,
     description='REGA CLI for provisioning RKE clusters',
     author='Jon Ander Novella',
     install_requires=[
