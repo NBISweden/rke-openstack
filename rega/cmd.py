@@ -200,25 +200,6 @@ def run_in_container(commands, check_version=True):
     return exit_code
 
 
-def render(template_path, data, extensions=None, strict=False):
-    """Render a jinja2 template."""
-    if extensions is None:
-        extensions = []
-    env = Environment(
-        loader=FileSystemLoader(os.path.dirname(template_path)),
-        extensions=extensions,
-        keep_trailing_newline=True,
-    )
-    if strict:
-        from jinja2 import StrictUndefined
-        env.undefined = StrictUndefined
-
-    env.globals['environ'] = os.environ.get
-
-    output = env.get_template(os.path.basename(template_path)).render(data)
-    return output.encode('utf-8')
-
-
 def apply_tf_modules(target, backend, config):
     """Apply the correct target to run Terraform."""
     if target == 'infra':
@@ -257,14 +238,12 @@ def get_tf_modules(target):
 
 def terraform_plan(target, backend, config):
     """Execute Terraform plan."""
-    setup_tf_backend(backend)
     return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
                              'terraform plan {}'.format(get_tf_modules(target))])
 
 
 def terraform_apply(modules, backend, config, parallelism=10):
     """Execute Terraform apply."""
-    setup_tf_backend(backend)
     return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
                              'terraform apply -parallelism={} -auto-approve {}'.format(parallelism, modules)])
 
@@ -272,15 +251,6 @@ def terraform_apply(modules, backend, config, parallelism=10):
 def terraform_destroy(modules, parallelism=10):
     """Execute Terraform destroy."""
     run_in_container(['terraform destroy -parallelism={} -force {}'.format(parallelism, modules)])
-
-
-def setup_tf_backend(backend):
-    """Render main.tf file with the chosen backend type."""
-    main_out = render('main.j2', {'backend_type': backend})
-    main_out = main_out.decode('utf-8')
-    main_file = open('main.tf', 'w')
-    main_file.write(main_out)
-    main_file.close()
 
 
 def run_ansible(playbook):
