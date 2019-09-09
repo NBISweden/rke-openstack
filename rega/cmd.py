@@ -10,7 +10,6 @@ import pkg_resources
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
-from jinja2 import Environment, FileSystemLoader
 from prettytable import PrettyTable
 
 logging.basicConfig(level=logging.INFO)
