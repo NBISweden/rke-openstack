@@ -2,6 +2,7 @@ import sys
 import os
 import logging
 from distutils import dir_util
+import subprocess
 
 import yaml
 import hcl
@@ -286,8 +287,9 @@ def run_ansible(playbook):
 
 def create_deployment(directory):
     """Copy relevant files to new folder."""
-    dir_util.mkpath(directory)
-    dir_util.copy_tree(deployment_template_dir(), './{}/'.format(directory))
+
+    branch=f"v{PACKAGE_VERSION}"
+    subprocess.run(f'git clone --branch={branch} https://github.com/NBISweden/rega-templates.git {directory}'.split(' '))
 
     if not os.path.isfile(directory + '/ssh_key.pub'):
         pu, pv = create_key_pair()

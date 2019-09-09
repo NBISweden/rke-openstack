@@ -1,6 +1,0 @@
-[master]
-${masters}
-[edge]
-${edges}
-[service]
-${services}
