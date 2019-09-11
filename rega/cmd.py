@@ -59,30 +59,24 @@ def version():
 @click.option('-M', '--modules', default='all',
               type=click.Choice(['infra', 'all']),
               help='Options are: "infra" and "all"')
-@click.option('-B', '--backend', default='local',
-              type=click.Choice(['local', 's3', 'swift']),
-              help='Options are: "local", "s3" and "swift"')
 @click.option('-C', '--config', default="backend.cfg",
               help='File used to define backend config')
-def plan(modules, backend, config):
+def plan(modules, config):
     """Create a Terraform execution plan with the necessary actions to achieve the desired state."""
     logging.info("""Creating execution plan for %s modules""", modules)
-    terraform_plan(modules, backend, config)
+    terraform_plan(modules, config)
 
 
 @main.command('apply')
 @click.option('-M', '--modules', default='all',
               type=click.Choice(['infra', 'all']),
               help='Options are: "infra" and "all"')
-@click.option('-B', '--backend', default='local',
-              type=click.Choice(['local', 's3', 'swift']),
-              help='Options are: "local", "s3" and "swift"')
 @click.option('-C', '--config', default="backend.cfg",
               help='File used to define backend config')
-def apply(modules, backend, config):
+def apply(modules, config):
     """Apply the Terraform plan to spawn the desired resources."""
     logging.info("""Applying setup using mode %s""", modules)
-    apply_tf_modules(modules, backend, config)
+    apply_tf_modules(modules, config)
 
 
 @main.command('destroy')
@@ -199,21 +193,21 @@ def run_in_container(commands, check_version=True):
     return exit_code
 
 
-def apply_tf_modules(target, backend, config):
+def apply_tf_modules(target, config):
     """Apply the correct target to run Terraform."""
     if target == 'infra':
-        terraform_apply(get_tf_modules('network'), backend, config)
-        terraform_apply(get_tf_modules('secgroup'), backend, config, parallelism=1)
-        terraform_apply(get_tf_modules('infra'), backend, config)
+        terraform_apply(get_tf_modules('network'), config)
+        terraform_apply(get_tf_modules('secgroup'), config, parallelism=1)
+        terraform_apply(get_tf_modules('infra'), config)
     elif target == 'all':
-        network_exit_code = terraform_apply(get_tf_modules('network'), backend, config)
-        secgroup_exit_code = terraform_apply(get_tf_modules('secgroup'), backend, config, parallelism=1)
-        infra_exit_code = terraform_apply(get_tf_modules('infra'), backend, config)
+        network_exit_code = terraform_apply(get_tf_modules('network'), config)
+        secgroup_exit_code = terraform_apply(get_tf_modules('secgroup'), config, parallelism=1)
+        infra_exit_code = terraform_apply(get_tf_modules('infra'), config)
         if infra_exit_code == 0 and secgroup_exit_code == 0 and network_exit_code == 0:
             generate_vars_file()
             ansible_exit_code = run_ansible('setup.yml')
             if ansible_exit_code == 0:
-                terraform_apply(get_tf_modules('k8s'), backend, config)
+                terraform_apply(get_tf_modules('k8s'), config)
 
 
 def get_tf_modules(target):
@@ -235,13 +229,13 @@ def get_tf_modules(target):
         return network_modules
 
 
-def terraform_plan(target, backend, config):
+def terraform_plan(target, config):
     """Execute Terraform plan."""
     return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
                              'terraform plan {}'.format(get_tf_modules(target))])
 
 
-def terraform_apply(modules, backend, config, parallelism=10):
+def terraform_apply(modules, config, parallelism=10):
     """Execute Terraform apply."""
     return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
                              'terraform apply -parallelism={} -auto-approve {}'.format(parallelism, modules)])
