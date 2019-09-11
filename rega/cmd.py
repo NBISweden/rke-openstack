@@ -155,10 +155,12 @@ def download_image(client):
 
 def run_in_container(commands, check_version=True):
     """Execute a sequence of shell commands in a Docker container."""
+    logging.debug(f"Run in container: {commands}")
     if check_version:
         check_version(PACKAGE_VERSION)
     check_environment()
 
+    logging.debug(f"Run in container: -> Initialising docker client")
     client = docker.from_env()
     download_image(client)
     env = list(filter_vars(os.environ))
@@ -167,11 +169,13 @@ def run_in_container(commands, check_version=True):
 
     assert isinstance(commands, list)
 
+    logging.debug(f"Run in container: -> setting up environment")
     if os.path.isfile('./kube_config_cluster.yml'):
         env.append('KUBECONFIG=/mnt/deployment/kube_config_cluster.yml')
     env.append('HELM_HOME=/mnt/deployment/.helm')
 
     commands_as_string = " && ".join(commands)
+    logging.debug(f"Run in container: -> Starting the command")
     runner = client.containers.run(
         DOCKER_IMAGE,
         volumes=volume_mount,
@@ -182,10 +186,12 @@ def run_in_container(commands, check_version=True):
         detach=True
     )
 
+    logging.debug(f"Run in container: -> Reading stdout from command")
     for line in runner.logs(stream=True, follow=True):
         # No need to add newlines since line already has them, so end="".
         print(line.decode(), end="")
 
+    logging.debug(f"Run in container: -> Waiting for command to finish")
     result = runner.wait()
     exit_code = result.get('StatusCode', 1)
     runner.remove()
@@ -212,6 +218,7 @@ def apply_tf_modules(target, config):
 
 def get_tf_modules(target):
     """Retrieve the target modules to run Terraform."""
+    logging.debug(f"Get tf modules: {target}")
     infra_modules = '-target=module.master\
                     -target=module.service -target=module.edge\
                     -target=module.inventory -target=module.keypair'
@@ -270,6 +277,7 @@ def create_deployment(repository, branch, directory):
 
 def check_environment():
     """Check if env is ready to proceed."""
+    logging.debug(f"Checking that evnironment is ok")
     if not os.environ.get('OS_AUTH_URL', False):
         sys.stderr.write("### ERROR ### You need to source the openstack credentials file\n")
         sys.exit(1)
@@ -286,6 +294,7 @@ def deployment_template_dir():
 
 def check_version(target_package):
     """Check whether the version used to initiate the current deployment is the same as the installed one."""
+    logging.debug(f"Checking whether version is {target_package}")
     try:
         with open('.version', 'r') as version_file:
             env_package = version_file.readline()
