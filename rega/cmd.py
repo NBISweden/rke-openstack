@@ -234,6 +234,7 @@ def get_tf_modules(target):
         return secgroup_modules
     if target == 'network':
         return network_modules
+    return ''
 
 
 def terraform_plan(target, config):
