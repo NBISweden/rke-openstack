@@ -32,7 +32,7 @@ def main(image):
 @main.command('init')
 @click.argument('directory')
 def init(directory):
-    """Initialises a new REGA environment."""
+    """Initialise a new REGA environment."""
     logging.info("""Initilising a new environment in %s""", directory)
     create_deployment(directory)
     logging.info("""Environment initialised. Navigate to the %s folder and update the terraform.tfvars file with your configuration""", directory)
@@ -40,8 +40,7 @@ def init(directory):
 
 @main.command('version')
 def version():
-    """Outputs the version of the target provisioning container along with the original and current package versions."""
-
+    """Output the version of the target provisioning container along with the original and current package versions."""
     try:
         with open('.version', 'r') as version_file:
             env_package = version_file.readline()
@@ -64,7 +63,7 @@ def version():
 @click.option('-C', '--config', default="backend.cfg",
               help='File used to define backend config')
 def plan(modules, backend, config):
-    """Creates a Terraform execution plan with the necessary actions to achieve the desired state."""
+    """Create a Terraform execution plan with the necessary actions to achieve the desired state."""
     logging.info("""Creating execution plan for %s modules""", modules)
     terraform_plan(modules, backend, config)
 
@@ -79,7 +78,7 @@ def plan(modules, backend, config):
 @click.option('-C', '--config', default="backend.cfg",
               help='File used to define backend config')
 def apply(modules, backend, config):
-    """Applies the Terraform plan to spawn the desired resources."""
+    """Apply the Terraform plan to spawn the desired resources."""
     logging.info("""Applying setup using mode %s""", modules)
     apply_tf_modules(modules, backend, config)
 
@@ -99,14 +98,14 @@ def destroy():
 
 
 def _fix_extra_args(ctx, param, value):
-    """Callback to make sure the extra_args is a string and not a tuple"""
+    """Use together with click.argument to convert tuple to string."""
     return " ".join(value)
 
 
 @main.command('terraform', context_settings={"ignore_unknown_options": True})
 @click.argument('extra_args', nargs=-1, type=click.UNPROCESSED, callback=_fix_extra_args)
 def terraform(extra_args):
-    """Executes the terraform command in the provisioner container with the provided args."""
+    """Execute the terraform command in the provisioner container with the provided args."""
     logging.info("""Running terraform with arguments: %s""", extra_args)
     run_in_container([f'terraform {extra_args}'])
 
@@ -114,7 +113,7 @@ def terraform(extra_args):
 @main.command('openstack', context_settings={"ignore_unknown_options": True})
 @click.argument('extra_args', nargs=-1, type=click.UNPROCESSED, callback=_fix_extra_args)
 def openstack(extra_args):
-    """Executes the openstack command in the provisioner container with the provided args."""
+    """Execute the openstack command in the provisioner container with the provided args."""
     logging.info("""Running openstack with arguments: %s""", extra_args)
     run_in_container(['openstack {}'.format(extra_args)])
 
@@ -122,7 +121,7 @@ def openstack(extra_args):
 @main.command('helm', context_settings={"ignore_unknown_options": True})
 @click.argument('extra_args', nargs=-1, type=click.UNPROCESSED, callback=_fix_extra_args)
 def helm(extra_args):
-    """Helm runner"""
+    """Execute the helm command in the provisioner container with the provided args."""
     logging.info("""Running helm with arguments: %s""", extra_args)
     check_version(PACKAGE_VERSION)
     run_in_container([f'helm {extra_args}'])
@@ -131,7 +130,7 @@ def helm(extra_args):
 @main.command('kubectl', context_settings={"ignore_unknown_options": True})
 @click.argument('extra_args', nargs=-1, type=click.UNPROCESSED, callback=_fix_extra_args)
 def kubectl(extra_args):
-    """Kubectl runner"""
+    """Execute the kubectl command in the provisioner container with the provided args."""
     logging.info("""Running kubectl with arguments: %s""", extra_args)
     check_version(PACKAGE_VERSION)
     run_in_container([f'kubectl {extra_args}'])
@@ -140,13 +139,13 @@ def kubectl(extra_args):
 @main.command('provision')
 @click.argument('playbook')
 def provision(playbook):
-    """Executes the Ansible playbook specified as an argument."""
+    """Execute the Ansible playbook specified as an argument."""
     generate_vars_file()
     run_ansible(playbook)
 
 
 def download_image(client):
-    """Attempts to download the target Docker image."""
+    """Attempt to download the target Docker image."""
     try:
         client.images.get(DOCKER_IMAGE)
     except docker.errors.ImageNotFound:
@@ -159,7 +158,7 @@ def download_image(client):
 
 
 def run_in_container(commands):
-    """Executes a sequence of shell commands in a Docker container."""
+    """Execute a sequence of shell commands in a Docker container."""
     check_version(PACKAGE_VERSION)
     check_environment()
 
@@ -198,7 +197,7 @@ def run_in_container(commands):
 
 
 def render(template_path, data, extensions=None, strict=False):
-    """Renders a jinja2 template."""
+    """Render a jinja2 template."""
     if extensions is None:
         extensions = []
     env = Environment(
@@ -217,7 +216,7 @@ def render(template_path, data, extensions=None, strict=False):
 
 
 def apply_tf_modules(target, backend, config):
-    """Applies the correct target to run Terraform."""
+    """Apply the correct target to run Terraform."""
     if target == 'infra':
         terraform_apply(get_tf_modules('network'), backend, config)
         terraform_apply(get_tf_modules('secgroup'), backend, config, parallelism=1)
@@ -234,7 +233,7 @@ def apply_tf_modules(target, backend, config):
 
 
 def get_tf_modules(target):
-    """Retrieves the target modules to run Terraform."""
+    """Retrieve the target modules to run Terraform."""
     infra_modules = '-target=module.master\
                     -target=module.service -target=module.edge\
                     -target=module.inventory -target=module.keypair'
@@ -253,26 +252,26 @@ def get_tf_modules(target):
 
 
 def terraform_plan(target, backend, config):
-    """Executes Terraform plan."""
+    """Execute Terraform plan."""
     setup_tf_backend(backend)
     return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
                              'terraform plan {}'.format(get_tf_modules(target))])
 
 
 def terraform_apply(modules, backend, config, parallelism=10):
-    """Executes Terraform apply."""
+    """Execute Terraform apply."""
     setup_tf_backend(backend)
     return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
                              'terraform apply -parallelism={} -auto-approve {}'.format(parallelism, modules)])
 
 
 def terraform_destroy(modules, parallelism=10):
-    """Executes Terraform destroy."""
+    """Execute Terraform destroy."""
     run_in_container(['terraform destroy -parallelism={} -force {}'.format(parallelism, modules)])
 
 
 def setup_tf_backend(backend):
-    """Renders the main.tf file with the chosen backend type."""
+    """Render main.tf file with the chosen backend type."""
     main_out = render('main.j2', {'backend_type': backend})
     main_out = main_out.decode('utf-8')
     main_file = open('main.tf', 'w')
@@ -281,12 +280,12 @@ def setup_tf_backend(backend):
 
 
 def run_ansible(playbook):
-    """Runs a given ansible playbook."""
+    """Run a given ansible playbook."""
     return run_in_container(['ansible-playbook playbooks/{}'.format(playbook)])
 
 
 def create_deployment(directory):
-    """Copies relevant files to new folder."""
+    """Copy relevant files to new folder."""
     dir_util.mkpath(directory)
     dir_util.copy_tree(deployment_template_dir(), './{}/'.format(directory))
 
@@ -303,7 +302,7 @@ def create_deployment(directory):
 
 
 def check_environment():
-    """Check if env is ready to proceed"""
+    """Check if env is ready to proceed."""
     if not os.environ.get('OS_AUTH_URL', False):
         sys.stderr.write("### ERROR ### You need to source the openstack credentials file\n")
         sys.exit(1)
@@ -314,12 +313,12 @@ def check_environment():
 
 
 def deployment_template_dir():
-    """Get the directory of the deployment template"""
+    """Get the directory of the deployment template."""
     return pkg_resources.resource_filename(__name__, "deployment-template")
 
 
 def check_version(target_package):
-    """Checks whether the version used to initiate the current deployment is the same as the installed one"""
+    """Check whether the version used to initiate the current deployment is the same as the installed one."""
     try:
         with open('.version', 'r') as version_file:
             env_package = version_file.readline()
@@ -336,7 +335,7 @@ def check_version(target_package):
 
 
 def create_key_pair():
-    """Createds a RSA key pair"""
+    """Create a RSA key pair."""
     key = rsa.generate_private_key(
         backend=crypto_default_backend(),
         public_exponent=65537,
@@ -354,7 +353,7 @@ def create_key_pair():
 
 
 def generate_vars_file():
-    """Generate Ansible vars file"""
+    """Generate Ansible vars file."""
     tf_default_vars = dict()
     tf_vars = dict()
 
@@ -389,7 +388,7 @@ def generate_vars_file():
 
 
 def filter_vars(seq):
-    """Retrieves OS and TF specific env vars."""
+    """Retrieve OS and TF specific env vars."""
     for key, val in seq.items():
         if key.startswith('TF_'):
             yield key + '=' + val
