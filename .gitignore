@@ -10,3 +10,4 @@ terraform.tfstate.backup
 build
 dist
 rega.egg-info
+.tox
