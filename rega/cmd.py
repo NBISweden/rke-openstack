@@ -160,9 +160,10 @@ def download_image(client):
             sys.exit(1)
 
 
-def run_in_container(commands):
-    """Execute a sequence of shell commands in a Docker container."""
-    check_version(PACKAGE_VERSION)
+def run_in_container(commands, check_version=True):
+    """Executes a sequence of shell commands in a Docker container."""
+    if check_version:
+        check_version(PACKAGE_VERSION)
     check_environment()
 
     client = docker.from_env()
@@ -290,7 +291,7 @@ def run_ansible(playbook):
 def create_deployment(repository, branch, directory):
     """Copy relevant files to new folder."""
 
-    run_in_container([f'git clone --branch={branch} {repository} {directory}'])
+    run_in_container([f'git clone --branch={branch} {repository} {directory}'], check_version=False)
 
     if not os.path.isfile(directory + '/ssh_key.pub'):
         pu, pv = create_key_pair()
