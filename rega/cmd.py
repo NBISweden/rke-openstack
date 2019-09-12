@@ -2,7 +2,6 @@ import sys
 import os
 import logging
 from distutils import dir_util
-import subprocess
 
 import yaml
 import hcl
