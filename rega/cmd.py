@@ -1,7 +1,6 @@
 import sys
 import os
 import logging
-from distutils import dir_util
 
 import yaml
 import hcl
