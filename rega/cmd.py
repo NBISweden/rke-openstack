@@ -1,7 +1,6 @@
 import sys
 import os
 import logging
-from distutils import dir_util
 
 import yaml
 import hcl
@@ -30,11 +29,15 @@ def main(image):
 
 
 @main.command('init')
+@click.option('-r', '--repository', default='https://github.com/NBISweden/rega-templates.git',
+              help="Specify the repo to use as a template for the infrastructure")
+@click.option('-b', '--branch', default=f"v{PACKAGE_VERSION}",
+              help=f"The branch to checkout from the repo, default is v{PACKAGE_VERSION}")
 @click.argument('directory')
-def init(directory):
+def init(repository, branch, directory):
     """Initialise a new REGA environment."""
     logging.info("""Initilising a new environment in %s""", directory)
-    create_deployment(directory)
+    create_deployment(repository, branch, directory)
     logging.info("""Environment initialised. Navigate to the %s folder and update the terraform.tfvars file with your configuration""", directory)
 
 
@@ -157,9 +160,10 @@ def download_image(client):
             sys.exit(1)
 
 
-def run_in_container(commands):
+def run_in_container(commands, check_version=True):
     """Execute a sequence of shell commands in a Docker container."""
-    check_version(PACKAGE_VERSION)
+    if check_version:
+        check_version(PACKAGE_VERSION)
     check_environment()
 
     client = docker.from_env()
@@ -284,10 +288,10 @@ def run_ansible(playbook):
     return run_in_container(['ansible-playbook playbooks/{}'.format(playbook)])
 
 
-def create_deployment(directory):
+def create_deployment(repository, branch, directory):
     """Copy relevant files to new folder."""
-    dir_util.mkpath(directory)
-    dir_util.copy_tree(deployment_template_dir(), './{}/'.format(directory))
+
+    run_in_container([f'git clone --branch={branch} {repository} {directory}'], check_version=False)
 
     if not os.path.isfile(directory + '/ssh_key.pub'):
         pu, pv = create_key_pair()
