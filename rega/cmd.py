@@ -161,7 +161,7 @@ def download_image(client):
 
 
 def run_in_container(commands, check_version=True):
-    """Executes a sequence of shell commands in a Docker container."""
+    """Execute a sequence of shell commands in a Docker container."""
     if check_version:
         check_version(PACKAGE_VERSION)
     check_environment()
