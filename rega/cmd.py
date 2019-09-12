@@ -30,9 +30,9 @@ def main(image):
 
 @main.command('init')
 @click.option('-r', '--repository', default='https://github.com/NBISweden/rega-templates.git',
-        help="Specify the repo to use as a template for the infrastructure")
+              help="Specify the repo to use as a template for the infrastructure")
 @click.option('-b', '--branch', default=f"v{PACKAGE_VERSION}",
-        help=f"The branch to checkout from the repo, default is v{PACKAGE_VERSION}")
+              help=f"The branch to checkout from the repo, default is v{PACKAGE_VERSION}")
 @click.argument('directory')
 def init(repository, branch, directory):
     """Initialise a new REGA environment."""
