@@ -9,7 +9,6 @@ setup(
     install_requires=[
         'click==7.0',
         'pyhcl==0.3.12',
-        'jinja2==2.10.1',
         'click-plugins==1.1.1',
         'docker==4.0.1',
         'cryptography==2.7',

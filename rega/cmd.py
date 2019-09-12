@@ -10,7 +10,6 @@ import pkg_resources
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
-from jinja2 import Environment, FileSystemLoader
 from prettytable import PrettyTable
 
 logging.basicConfig(level=logging.INFO)
@@ -60,30 +59,24 @@ def version():
 @click.option('-M', '--modules', default='all',
               type=click.Choice(['infra', 'all']),
               help='Options are: "infra" and "all"')
-@click.option('-B', '--backend', default='local',
-              type=click.Choice(['local', 's3', 'swift']),
-              help='Options are: "local", "s3" and "swift"')
 @click.option('-C', '--config', default="backend.cfg",
               help='File used to define backend config')
-def plan(modules, backend, config):
+def plan(modules, config):
     """Create a Terraform execution plan with the necessary actions to achieve the desired state."""
     logging.info("""Creating execution plan for %s modules""", modules)
-    terraform_plan(modules, backend, config)
+    terraform_plan(modules, config)
 
 
 @main.command('apply')
 @click.option('-M', '--modules', default='all',
               type=click.Choice(['infra', 'all']),
               help='Options are: "infra" and "all"')
-@click.option('-B', '--backend', default='local',
-              type=click.Choice(['local', 's3', 'swift']),
-              help='Options are: "local", "s3" and "swift"')
 @click.option('-C', '--config', default="backend.cfg",
               help='File used to define backend config')
-def apply(modules, backend, config):
+def apply(modules, config):
     """Apply the Terraform plan to spawn the desired resources."""
     logging.info("""Applying setup using mode %s""", modules)
-    apply_tf_modules(modules, backend, config)
+    apply_tf_modules(modules, config)
 
 
 @main.command('destroy')
@@ -162,10 +155,12 @@ def download_image(client):
 
 def run_in_container(commands, check_version=True):
     """Execute a sequence of shell commands in a Docker container."""
+    logging.debug(f"Run in container: {commands}")
     if check_version:
         check_version(PACKAGE_VERSION)
     check_environment()
 
+    logging.debug(f"Run in container: -> Initialising docker client")
     client = docker.from_env()
     download_image(client)
     env = list(filter_vars(os.environ))
@@ -174,11 +169,13 @@ def run_in_container(commands, check_version=True):
 
     assert isinstance(commands, list)
 
+    logging.debug(f"Run in container: -> setting up environment")
     if os.path.isfile('./kube_config_cluster.yml'):
         env.append('KUBECONFIG=/mnt/deployment/kube_config_cluster.yml')
     env.append('HELM_HOME=/mnt/deployment/.helm')
 
     commands_as_string = " && ".join(commands)
+    logging.debug(f"Run in container: -> Starting the command")
     runner = client.containers.run(
         DOCKER_IMAGE,
         volumes=volume_mount,
@@ -189,10 +186,12 @@ def run_in_container(commands, check_version=True):
         detach=True
     )
 
+    logging.debug(f"Run in container: -> Reading stdout from command")
     for line in runner.logs(stream=True, follow=True):
         # No need to add newlines since line already has them, so end="".
         print(line.decode(), end="")
 
+    logging.debug(f"Run in container: -> Waiting for command to finish")
     result = runner.wait()
     exit_code = result.get('StatusCode', 1)
     runner.remove()
@@ -200,44 +199,26 @@ def run_in_container(commands, check_version=True):
     return exit_code
 
 
-def render(template_path, data, extensions=None, strict=False):
-    """Render a jinja2 template."""
-    if extensions is None:
-        extensions = []
-    env = Environment(
-        loader=FileSystemLoader(os.path.dirname(template_path)),
-        extensions=extensions,
-        keep_trailing_newline=True,
-    )
-    if strict:
-        from jinja2 import StrictUndefined
-        env.undefined = StrictUndefined
-
-    env.globals['environ'] = os.environ.get
-
-    output = env.get_template(os.path.basename(template_path)).render(data)
-    return output.encode('utf-8')
-
-
-def apply_tf_modules(target, backend, config):
+def apply_tf_modules(target, config):
     """Apply the correct target to run Terraform."""
     if target == 'infra':
-        terraform_apply(get_tf_modules('network'), backend, config)
-        terraform_apply(get_tf_modules('secgroup'), backend, config, parallelism=1)
-        terraform_apply(get_tf_modules('infra'), backend, config)
+        terraform_apply(get_tf_modules('network'), config)
+        terraform_apply(get_tf_modules('secgroup'), config, parallelism=1)
+        terraform_apply(get_tf_modules('infra'), config)
     elif target == 'all':
-        network_exit_code = terraform_apply(get_tf_modules('network'), backend, config)
-        secgroup_exit_code = terraform_apply(get_tf_modules('secgroup'), backend, config, parallelism=1)
-        infra_exit_code = terraform_apply(get_tf_modules('infra'), backend, config)
+        network_exit_code = terraform_apply(get_tf_modules('network'), config)
+        secgroup_exit_code = terraform_apply(get_tf_modules('secgroup'), config, parallelism=1)
+        infra_exit_code = terraform_apply(get_tf_modules('infra'), config)
         if infra_exit_code == 0 and secgroup_exit_code == 0 and network_exit_code == 0:
             generate_vars_file()
             ansible_exit_code = run_ansible('setup.yml')
             if ansible_exit_code == 0:
-                terraform_apply(get_tf_modules('k8s'), backend, config)
+                terraform_apply(get_tf_modules('k8s'), config)
 
 
 def get_tf_modules(target):
     """Retrieve the target modules to run Terraform."""
+    logging.debug(f"Get tf modules: {target}")
     infra_modules = '-target=module.master\
                     -target=module.service -target=module.edge\
                     -target=module.inventory -target=module.keypair'
@@ -253,18 +234,17 @@ def get_tf_modules(target):
         return secgroup_modules
     if target == 'network':
         return network_modules
+    return ''
 
 
-def terraform_plan(target, backend, config):
+def terraform_plan(target, config):
     """Execute Terraform plan."""
-    setup_tf_backend(backend)
     return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
                              'terraform plan {}'.format(get_tf_modules(target))])
 
 
-def terraform_apply(modules, backend, config, parallelism=10):
+def terraform_apply(modules, config, parallelism=10):
     """Execute Terraform apply."""
-    setup_tf_backend(backend)
     return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
                              'terraform apply -parallelism={} -auto-approve {}'.format(parallelism, modules)])
 
@@ -272,15 +252,6 @@ def terraform_apply(modules, backend, config, parallelism=10):
 def terraform_destroy(modules, parallelism=10):
     """Execute Terraform destroy."""
     run_in_container(['terraform destroy -parallelism={} -force {}'.format(parallelism, modules)])
-
-
-def setup_tf_backend(backend):
-    """Render main.tf file with the chosen backend type."""
-    main_out = render('main.j2', {'backend_type': backend})
-    main_out = main_out.decode('utf-8')
-    main_file = open('main.tf', 'w')
-    main_file.write(main_out)
-    main_file.close()
 
 
 def run_ansible(playbook):
@@ -307,6 +278,7 @@ def create_deployment(repository, branch, directory):
 
 def check_environment():
     """Check if env is ready to proceed."""
+    logging.debug(f"Checking that evnironment is ok")
     if not os.environ.get('OS_AUTH_URL', False):
         sys.stderr.write("### ERROR ### You need to source the openstack credentials file\n")
         sys.exit(1)
@@ -323,6 +295,7 @@ def deployment_template_dir():
 
 def check_version(target_package):
     """Check whether the version used to initiate the current deployment is the same as the installed one."""
+    logging.debug(f"Checking whether version is {target_package}")
     try:
         with open('.version', 'r') as version_file:
             env_package = version_file.readline()
