@@ -221,7 +221,7 @@ def get_tf_modules(target):
     logging.debug(f"Get tf modules: {target}")
     infra_modules = '-target=module.master\
                     -target=module.service -target=module.edge\
-                    -target=module.inventory -target=module.keypair'
+                    -target=module.ansible -target=module.keypair'
     k8s_modules = '-target=module.rke'
     secgroup_modules = '-target=module.secgroup'
     network_modules = '-target=module.network'
