@@ -292,7 +292,7 @@ def run_ansible(playbook):
 def create_deployment(repository, branch, directory):
     """Copy relevant files to new folder."""
 
-    subprocess.run(f'git clone --branch={branch} {repository} {directory}'.split(' '))
+    run_in_container([f'git clone --branch={branch} {repository} {directory}'])
 
     if not os.path.isfile(directory + '/ssh_key.pub'):
         pu, pv = create_key_pair()
