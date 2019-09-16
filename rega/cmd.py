@@ -134,7 +134,6 @@ def kubectl(extra_args):
 @click.argument('playbook')
 def provision(playbook):
     """Execute the Ansible playbook specified as an argument."""
-    generate_vars_file()
     run_ansible(playbook)
 
 
@@ -208,7 +207,6 @@ def apply_tf_modules(target, config):
         secgroup_exit_code = terraform_apply(get_tf_modules('secgroup'), config, parallelism=1)
         infra_exit_code = terraform_apply(get_tf_modules('infra'), config)
         if infra_exit_code == 0 and secgroup_exit_code == 0 and network_exit_code == 0:
-            generate_vars_file()
             ansible_exit_code = run_ansible('setup.yml')
             if ansible_exit_code == 0:
                 terraform_apply(get_tf_modules('k8s'), config)
@@ -325,41 +323,6 @@ def create_key_pair():
         crypto_serialization.PublicFormat.OpenSSH
     )
     return (public_key.decode('utf-8'), private_key.decode('utf-8'))
-
-
-def generate_vars_file():
-    """Generate Ansible vars file."""
-    tf_default_vars = dict()
-    tf_vars = dict()
-
-    with open("variables.tf", 'r') as stream:
-        tf_default_vars = hcl.load(stream)
-
-    ssh_user = tf_default_vars['variable']['ssh_user']['default']
-    private_key = tf_default_vars['variable']['ssh_key']['default']
-    cluster_prefix = tf_default_vars['variable']['cluster_prefix']['default']
-
-    with open("terraform.tfvars", 'r') as stream:
-        tf_vars = hcl.load(stream)
-
-    if 'cluster_prefix' in tf_vars:
-        cluster_prefix = tf_vars['cluster_prefix']
-    if 'ssh_key' in tf_vars:
-        private_key = tf_vars['ssh_key']
-    if 'ssh_user' in tf_vars:
-        ssh_user = tf_vars['ssh_user']
-
-    data = {
-        "edge_host": "{}-edge-000".format(cluster_prefix),
-        "edge_ip": "{{ hostvars.get(edge_host)[\"ansible_host\"] }}",
-        "ssh_user": ssh_user,
-        "private_key": private_key
-    }
-
-    vars_file = 'playbooks/group_vars/all'
-
-    with open(vars_file, 'w') as fh:
-        fh.write(yaml.dump(data, default_flow_style=False))
 
 
 def filter_vars(seq):
