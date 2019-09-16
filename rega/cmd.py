@@ -2,8 +2,6 @@ import sys
 import os
 import logging
 
-import yaml
-import hcl
 import click
 import docker
 import pkg_resources
