@@ -34,7 +34,9 @@ def main(image):
 def init(repository, branch, directory):
     """Initialise a new REGA environment."""
     logging.info("""Initilising a new environment in %s""", directory)
-    create_deployment(repository, branch, directory)
+    clone_deployment_templates(repository, branch, directory)
+    generate_ssh_keys(directory)
+    write_version_file(directory)
     logging.info("""Environment initialised. Navigate to the %s folder and update the terraform.tfvars file with your configuration""", directory)
 
 
@@ -255,10 +257,13 @@ def run_ansible(playbook):
     return run_in_container(['ansible-playbook playbooks/{}'.format(playbook)])
 
 
-def create_deployment(repository, branch, directory):
-    """Copy relevant files to new folder."""
-
+def clone_deployment_templates(repository, branch, directory):
+    """Clone deployment template repo into new directory"""
     run_in_container([f'git clone --branch={branch} {repository} {directory}'], do_check_version=False)
+
+
+def generate_ssh_keys(directory):
+    """Create ssh keys for deployment"""
 
     if not os.path.isfile(directory + '/ssh_key.pub'):
         pu, pv = create_key_pair()
@@ -268,6 +273,8 @@ def create_deployment(repository, branch, directory):
             key.write(pv)
             os.chmod(directory + '/ssh_key', 0o400)
 
+
+def write_version_file(directory):
     with open(directory + '/.version', 'w') as version_file:
         version_file.write(pkg_resources.get_distribution("rega").version)
 
