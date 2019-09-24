@@ -266,11 +266,6 @@ def check_environment():
         sys.exit(1)
 
 
-def deployment_template_dir():
-    """Get the directory of the deployment template."""
-    return pkg_resources.resource_filename(__name__, "deployment-template")
-
-
 def check_version(target_package):
     """Check whether the version used to initiate the current deployment is the same as the installed one."""
     logging.debug(f"Checking whether version is {target_package}")
