@@ -21,6 +21,12 @@ DOCKER_IMAGE = f'nbisweden/rega:release-v{PACKAGE_VERSION}'
               help='Docker image used for provisioning')
 def main(image):
     """REGA is a tool for provisioning RKE clusters."""
+    # Dont check environment in case we are in init
+    context = click.get_current_context()
+    if context.invoked_subcommand != 'init':
+        check_version(PACKAGE_VERSION)
+        check_environment()
+
     global DOCKER_IMAGE
     DOCKER_IMAGE = image
 
@@ -119,7 +125,6 @@ def openstack(extra_args):
 def helm(extra_args):
     """Execute the helm command in the provisioner container with the provided args."""
     logging.info("""Running helm with arguments: %s""", extra_args)
-    check_version(PACKAGE_VERSION)
     run_in_container([f'helm {extra_args}'])
 
 
@@ -128,7 +133,6 @@ def helm(extra_args):
 def kubectl(extra_args):
     """Execute the kubectl command in the provisioner container with the provided args."""
     logging.info("""Running kubectl with arguments: %s""", extra_args)
-    check_version(PACKAGE_VERSION)
     run_in_container([f'kubectl {extra_args}'])
 
 
@@ -152,12 +156,9 @@ def download_image(client):
             sys.exit(1)
 
 
-def run_in_container(commands, do_check_version=True):
+def run_in_container(commands):
     """Execute a sequence of shell commands in a Docker container."""
     logging.debug(f"Run in container: {commands}")
-    if do_check_version:
-        check_version(PACKAGE_VERSION)
-    check_environment()
 
     logging.debug(f"Run in container: -> Initialising docker client")
     client = docker.from_env()
