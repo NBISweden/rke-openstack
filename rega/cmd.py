@@ -119,17 +119,11 @@ def apply(modules):
 
 
 @main.command('destroy')
+@click.argument('module', nargs=-1)
 def destroy():
     """Releases the previously requested resources."""
     logging.info("""Destroying the infrastructure...""")
-
-    # In order for the destruction to work on all our infrastructures we need to
-    # run the different modules separately to avoid terraform hanging while
-    # interacting with the openstack api.
-    terraform_destroy(get_tf_modules('k8s'))
-    terraform_destroy(get_tf_modules('infra'))
-    terraform_destroy(get_tf_modules('network'))
-    terraform_destroy(get_tf_modules('secgroup'), parallelism=1)
+    run_scripts(type='destroy', selection=None)
 
 
 def _fix_extra_args(ctx, param, value):
@@ -236,32 +230,6 @@ def run_scripts(type, selection=None):
 def run_init_scripts(directory):
     os.chdir(directory)
     run_scripts('init')
-
-
-def get_tf_modules(target):
-    """Retrieve the target modules to run Terraform."""
-    logging.debug(f"Get tf modules: {target}")
-    infra_modules = '-target=module.master\
-                    -target=module.service -target=module.edge\
-                    -target=module.ansible -target=module.keypair'
-    k8s_modules = '-target=module.rke'
-    secgroup_modules = '-target=module.secgroup'
-    network_modules = '-target=module.network'
-
-    if target == 'infra':
-        return infra_modules
-    if target == 'k8s':
-        return k8s_modules
-    if target == 'secgroup':
-        return secgroup_modules
-    if target == 'network':
-        return network_modules
-    return ''
-
-
-def terraform_destroy(modules, parallelism=10):
-    """Execute Terraform destroy."""
-    run_in_container(['terraform destroy -parallelism={} -force {}'.format(parallelism, modules)])
 
 
 def clone_deployment_templates(repository, branch, directory):
