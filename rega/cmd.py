@@ -53,7 +53,7 @@ def version():
         with open('.version', 'r') as version_file:
             env_package = version_file.readline()
     except FileNotFoundError:
-        sys.stderr.write("### ERROR ### The version file of the environment was not found.")
+        sys.stderr.write("### ERROR ### The version file of the environment was not found.\n")
         sys.exit(1)
 
     t = PrettyTable(['Original package version', 'Current package version', 'Image version'])
@@ -304,7 +304,7 @@ def check_version(target_package):
         with open('.version', 'r') as version_file:
             env_package = version_file.readline()
     except FileNotFoundError:
-        sys.stderr.write("### ERROR ### The version file of the environment was not found.")
+        sys.stderr.write("### ERROR ### The version file of the environment was not found.\n")
         sys.exit(1)
 
     t = PrettyTable(['Original', 'Current'])
