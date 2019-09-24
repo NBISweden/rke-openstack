@@ -2,10 +2,10 @@ from setuptools import setup
 
 setup(
     name='rega',
-    version='1.6.0',
+    version='1.7.0',
     packages=['rega'],
     description='REGA CLI for provisioning RKE clusters',
-    author='Jon Ander Novella',
+    author='Jon Ander Novella and Johan Viklund',
     install_requires=[
         'click==7.0',
         'pyhcl==0.3.12',
