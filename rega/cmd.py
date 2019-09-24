@@ -103,15 +103,11 @@ def version():
 
 
 @main.command('plan')
-@click.option('-M', '--modules', default='all',
-              type=click.Choice(['infra', 'all']),
-              help='Options are: "infra" and "all"')
-@click.option('-C', '--config', default="backend.cfg",
-              help='File used to define backend config')
-def plan(modules, config):
+@click.argument('modules', nargs=-1)
+def plan(modules):
     """Create a Terraform execution plan with the necessary actions to achieve the desired state."""
-    logging.info("""Creating execution plan for %s modules""", modules)
-    terraform_plan(modules, config)
+    logging.info("""Creating execution plan for %s module(s)""", ", ".join(modules))
+    run_scripts(type='plan', selection=modules)
 
 
 @main.command('apply')
@@ -288,12 +284,6 @@ def get_tf_modules(target):
     if target == 'network':
         return network_modules
     return ''
-
-
-def terraform_plan(target, config):
-    """Execute Terraform plan."""
-    return run_in_container(['terraform init -backend-config={} -plugin-dir=./terraform_plugins'.format(config),
-                             'terraform plan {}'.format(get_tf_modules(target))])
 
 
 def terraform_apply(modules, config, parallelism=10):
