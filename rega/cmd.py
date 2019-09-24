@@ -1,6 +1,8 @@
 import sys
 import os
 import logging
+from glob import glob
+import re
 
 import click
 import docker
@@ -13,6 +15,43 @@ from prettytable import PrettyTable
 logging.basicConfig(level=logging.INFO)
 PACKAGE_VERSION = pkg_resources.get_distribution("rega").version
 DOCKER_IMAGE = f'nbisweden/rega:release-v{PACKAGE_VERSION}'
+
+
+class TemplateScripts:
+    def __init__(self):
+        self._scripts = self._find_scripts()
+
+
+    def _find_scripts(self):
+        scripts = []
+        for script in glob('scripts/*.sh'):
+            m = re.search('(\d+)_([^_]+)_(.*)\.sh', script)
+            if m is None:
+                continue
+            scripts.append({
+                'stage': int(m[1]),
+                'type': m[2],
+                'name': m[3],
+                'path': script
+            })
+        scripts.sort(key=lambda x: x['stage'])
+        return scripts
+
+
+    def get_type(self, type):
+        for script in self._scripts:
+            if script['type'] == type:
+                yield script
+
+
+    def number_of_stages(self):
+        return max( map( lambda x: x['stage'], self._scripts ) )
+
+
+    def get_stage(self, n):
+        for script in self._scripts:
+            if script['stage'] == n:
+                yield script
 
 
 @click.group()
@@ -197,6 +236,14 @@ def run_in_container(commands):
     runner.remove()
 
     return exit_code
+
+
+def run_scripts(type, selection=None):
+    scripts = TemplateScripts()
+    for script in scripts.get_type(type):
+        if len(selection) > 0 and script['name'] not in selection:
+            continue
+        run_in_container([script['path']])
 
 
 def apply_tf_modules(target, config):
