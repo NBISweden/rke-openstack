@@ -237,13 +237,13 @@ def get_tf_modules(target):
 
 def terraform_plan(target, config):
     """Execute Terraform plan."""
-    return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
+    return run_in_container(['terraform init -backend-config={} -plugin-dir=./terraform_plugins'.format(config),
                              'terraform plan {}'.format(get_tf_modules(target))])
 
 
 def terraform_apply(modules, config, parallelism=10):
     """Execute Terraform apply."""
-    return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
+    return run_in_container(['terraform init -backend-config={} -plugin-dir=./terraform_plugins'.format(config),
                              'terraform apply -parallelism={} -auto-approve {}'.format(parallelism, modules)])
 
 
