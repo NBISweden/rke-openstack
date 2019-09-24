@@ -82,6 +82,8 @@ def init(repository, branch, directory):
     clone_deployment_templates(repository, branch, directory)
     generate_ssh_keys(directory)
     write_version_file(directory)
+
+    run_init_scripts(directory)
     logging.info("""Environment initialised. Navigate to the %s folder and update the terraform.tfvars file with your configuration""", directory)
 
 
@@ -244,6 +246,11 @@ def run_scripts(type, selection=None):
         if len(selection) > 0 and script['name'] not in selection:
             continue
         run_in_container([script['path']])
+
+
+def run_init_scripts(directory):
+    os.chdir(directory)
+    run_scripts('init')
 
 
 def apply_tf_modules(target, config):
