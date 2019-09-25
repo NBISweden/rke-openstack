@@ -1,6 +1,8 @@
 import sys
 import os
 import logging
+from glob import glob
+import re
 
 import click
 import docker
@@ -15,12 +17,55 @@ PACKAGE_VERSION = pkg_resources.get_distribution("rega").version
 DOCKER_IMAGE = f'nbisweden/rega:release-v{PACKAGE_VERSION}'
 
 
+class TemplateScripts:
+    def __init__(self):
+        self._scripts = self._find_scripts()
+
+
+    def _find_scripts(self):
+        scripts = []
+        for script in glob('scripts/*.sh'):
+            m = re.search('(\d+)_([^_]+)_(.*)\.sh', script)
+            if m is None:
+                continue
+            scripts.append({
+                'stage': int(m[1]),
+                'type': m[2],
+                'name': m[3],
+                'path': script
+            })
+        scripts.sort(key=lambda x: x['stage'])
+        return scripts
+
+
+    def get_type(self, type):
+        for script in self._scripts:
+            if script['type'] == type:
+                yield script
+
+
+    def number_of_stages(self):
+        return max( map( lambda x: x['stage'], self._scripts ) )
+
+
+    def get_stage(self, n):
+        for script in self._scripts:
+            if script['stage'] == n:
+                yield script
+
+
 @click.group()
 @click.option('-I', '--image', default=DOCKER_IMAGE,
               envvar='REGA_PROVISIONER_IMG',
               help='Docker image used for provisioning')
 def main(image):
     """REGA is a tool for provisioning RKE clusters."""
+    # Dont check environment in case we are in init
+    context = click.get_current_context()
+    if context.invoked_subcommand != 'init':
+        check_version(PACKAGE_VERSION)
+        check_environment()
+
     global DOCKER_IMAGE
     DOCKER_IMAGE = image
 
@@ -28,13 +73,17 @@ def main(image):
 @main.command('init')
 @click.option('-r', '--repository', default='https://github.com/NBISweden/rega-templates.git',
               help="Specify the repo to use as a template for the infrastructure")
-@click.option('-b', '--branch', default=f"v{PACKAGE_VERSION}",
+@click.option('-b', '--branch', default=f"master",
               help=f"The branch to checkout from the repo, default is v{PACKAGE_VERSION}")
 @click.argument('directory')
 def init(repository, branch, directory):
     """Initialise a new REGA environment."""
     logging.info("""Initilising a new environment in %s""", directory)
-    create_deployment(repository, branch, directory)
+    clone_deployment_templates(repository, branch, directory)
+    generate_ssh_keys(directory)
+    write_version_file(directory)
+
+    run_init_scripts(directory)
     logging.info("""Environment initialised. Navigate to the %s folder and update the terraform.tfvars file with your configuration""", directory)
 
 
@@ -45,7 +94,7 @@ def version():
         with open('.version', 'r') as version_file:
             env_package = version_file.readline()
     except FileNotFoundError:
-        sys.stderr.write("### ERROR ### The version file of the environment was not found.")
+        sys.stderr.write("### ERROR ### The version file of the environment was not found.\n")
         sys.exit(1)
 
     t = PrettyTable(['Original package version', 'Current package version', 'Image version'])
@@ -54,41 +103,27 @@ def version():
 
 
 @main.command('plan')
-@click.option('-M', '--modules', default='all',
-              type=click.Choice(['infra', 'all']),
-              help='Options are: "infra" and "all"')
-@click.option('-C', '--config', default="backend.cfg",
-              help='File used to define backend config')
-def plan(modules, config):
+@click.argument('modules', nargs=-1)
+def plan(modules):
     """Create a Terraform execution plan with the necessary actions to achieve the desired state."""
-    logging.info("""Creating execution plan for %s modules""", modules)
-    terraform_plan(modules, config)
+    logging.info("""Creating execution plan for %s module(s)""", ", ".join(modules))
+    run_scripts(type='plan', selection=modules)
 
 
 @main.command('apply')
-@click.option('-M', '--modules', default='all',
-              type=click.Choice(['infra', 'all']),
-              help='Options are: "infra" and "all"')
-@click.option('-C', '--config', default="backend.cfg",
-              help='File used to define backend config')
-def apply(modules, config):
+@click.argument('module', nargs=-1)
+def apply(modules):
     """Apply the Terraform plan to spawn the desired resources."""
-    logging.info("""Applying setup using mode %s""", modules)
-    apply_tf_modules(modules, config)
+    logging.info("""Applying setup using modules %s""", ", ".join(modules))
+    run_scripts(type='apply', selection=None)
 
 
 @main.command('destroy')
+@click.argument('module', nargs=-1)
 def destroy():
     """Releases the previously requested resources."""
     logging.info("""Destroying the infrastructure...""")
-
-    # In order for the destruction to work on all our infrastructures we need to
-    # run the different modules separately to avoid terraform hanging while
-    # interacting with the openstack api.
-    terraform_destroy(get_tf_modules('k8s'))
-    terraform_destroy(get_tf_modules('infra'))
-    terraform_destroy(get_tf_modules('network'))
-    terraform_destroy(get_tf_modules('secgroup'), parallelism=1)
+    run_scripts(type='destroy', selection=None)
 
 
 def _fix_extra_args(ctx, param, value):
@@ -117,7 +152,6 @@ def openstack(extra_args):
 def helm(extra_args):
     """Execute the helm command in the provisioner container with the provided args."""
     logging.info("""Running helm with arguments: %s""", extra_args)
-    check_version(PACKAGE_VERSION)
     run_in_container([f'helm {extra_args}'])
 
 
@@ -126,15 +160,7 @@ def helm(extra_args):
 def kubectl(extra_args):
     """Execute the kubectl command in the provisioner container with the provided args."""
     logging.info("""Running kubectl with arguments: %s""", extra_args)
-    check_version(PACKAGE_VERSION)
     run_in_container([f'kubectl {extra_args}'])
-
-
-@main.command('provision')
-@click.argument('playbook')
-def provision(playbook):
-    """Execute the Ansible playbook specified as an argument."""
-    run_ansible(playbook)
 
 
 def download_image(client):
@@ -150,12 +176,9 @@ def download_image(client):
             sys.exit(1)
 
 
-def run_in_container(commands, do_check_version=True):
+def run_in_container(commands):
     """Execute a sequence of shell commands in a Docker container."""
     logging.debug(f"Run in container: {commands}")
-    if do_check_version:
-        check_version(PACKAGE_VERSION)
-    check_environment()
 
     logging.debug(f"Run in container: -> Initialising docker client")
     client = docker.from_env()
@@ -196,69 +219,26 @@ def run_in_container(commands, do_check_version=True):
     return exit_code
 
 
-def apply_tf_modules(target, config):
-    """Apply the correct target to run Terraform."""
-    if target == 'infra':
-        terraform_apply(get_tf_modules('network'), config)
-        terraform_apply(get_tf_modules('secgroup'), config, parallelism=1)
-        terraform_apply(get_tf_modules('infra'), config)
-    elif target == 'all':
-        network_exit_code = terraform_apply(get_tf_modules('network'), config)
-        secgroup_exit_code = terraform_apply(get_tf_modules('secgroup'), config, parallelism=1)
-        infra_exit_code = terraform_apply(get_tf_modules('infra'), config)
-        if infra_exit_code == 0 and secgroup_exit_code == 0 and network_exit_code == 0:
-            ansible_exit_code = run_ansible('setup.yml')
-            if ansible_exit_code == 0:
-                terraform_apply(get_tf_modules('k8s'), config)
+def run_scripts(type, selection=None):
+    scripts = TemplateScripts()
+    for script in scripts.get_type(type):
+        if len(selection) > 0 and script['name'] not in selection:
+            continue
+        run_in_container([script['path']])
 
 
-def get_tf_modules(target):
-    """Retrieve the target modules to run Terraform."""
-    logging.debug(f"Get tf modules: {target}")
-    infra_modules = '-target=module.master\
-                    -target=module.service -target=module.edge\
-                    -target=module.ansible -target=module.keypair'
-    k8s_modules = '-target=module.rke'
-    secgroup_modules = '-target=module.secgroup'
-    network_modules = '-target=module.network'
-
-    if target == 'infra':
-        return infra_modules
-    if target == 'k8s':
-        return k8s_modules
-    if target == 'secgroup':
-        return secgroup_modules
-    if target == 'network':
-        return network_modules
-    return ''
+def run_init_scripts(directory):
+    os.chdir(directory)
+    run_scripts('init')
 
 
-def terraform_plan(target, config):
-    """Execute Terraform plan."""
-    return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
-                             'terraform plan {}'.format(get_tf_modules(target))])
-
-
-def terraform_apply(modules, config, parallelism=10):
-    """Execute Terraform apply."""
-    return run_in_container(['terraform init -backend-config={} -plugin-dir=/terraform_plugins'.format(config),
-                             'terraform apply -parallelism={} -auto-approve {}'.format(parallelism, modules)])
-
-
-def terraform_destroy(modules, parallelism=10):
-    """Execute Terraform destroy."""
-    run_in_container(['terraform destroy -parallelism={} -force {}'.format(parallelism, modules)])
-
-
-def run_ansible(playbook):
-    """Run a given ansible playbook."""
-    return run_in_container(['ansible-playbook playbooks/{}'.format(playbook)])
-
-
-def create_deployment(repository, branch, directory):
-    """Copy relevant files to new folder."""
-
+def clone_deployment_templates(repository, branch, directory):
+    """Clone deployment template repo into new directory"""
     run_in_container([f'git clone --branch={branch} {repository} {directory}'], do_check_version=False)
+
+
+def generate_ssh_keys(directory):
+    """Create ssh keys for deployment"""
 
     if not os.path.isfile(directory + '/ssh_key.pub'):
         pu, pv = create_key_pair()
@@ -268,6 +248,8 @@ def create_deployment(repository, branch, directory):
             key.write(pv)
             os.chmod(directory + '/ssh_key', 0o400)
 
+
+def write_version_file(directory):
     with open(directory + '/.version', 'w') as version_file:
         version_file.write(pkg_resources.get_distribution("rega").version)
 
@@ -284,11 +266,6 @@ def check_environment():
         sys.exit(1)
 
 
-def deployment_template_dir():
-    """Get the directory of the deployment template."""
-    return pkg_resources.resource_filename(__name__, "deployment-template")
-
-
 def check_version(target_package):
     """Check whether the version used to initiate the current deployment is the same as the installed one."""
     logging.debug(f"Checking whether version is {target_package}")
@@ -296,7 +273,7 @@ def check_version(target_package):
         with open('.version', 'r') as version_file:
             env_package = version_file.readline()
     except FileNotFoundError:
-        sys.stderr.write("### ERROR ### The version file of the environment was not found.")
+        sys.stderr.write("### ERROR ### The version file of the environment was not found.\n")
         sys.exit(1)
 
     t = PrettyTable(['Original', 'Current'])

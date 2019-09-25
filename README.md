@@ -18,7 +18,7 @@ You need `python3` installed. I recommend that you use `virtualenv` for installa
 
 In order to install the CLI please run:
 ```
-make install
+pip install .
 ```
 You can now explore the different functions provided by the CLI by executing:
 ```
@@ -27,73 +27,36 @@ rega --help
 
 ## Deployment configuration
 
-To create a new deployment project you can run:
+The tool can use different configurations depending on your needs. The default
+configuration lives in the https://github.com/NBISweden/rega-templates
+repository so see that for more detailed information.
+
+To create a new default deployment project you can run:
 ```
 rega init <my-project>
 cd <my-project>
 ```
-Once in your project folder, update the file called `terraform.tfvars` where you specify the values for the following settings:
 
-```yml
-## Cluster configuration ##
-# Unique name for the resources
-cluster_prefix="my-test"
-# User for ssh connections. It varies among distributions. (CentOS might work with cloud-user or centos)
-ssh_user="<ssh-user>"
-# Network settings
-external_network_id=""
-floating_ip_pool=""
-# Image name (RKE runs on almost any Linux OS)
-image_name="<image-name>"
-# Node counts and flavours (Note that these flavours are only indicative)
-master_flavor_name="ssc.medium"
-master_count=1
-service_flavor_name="ssc.medium"
-service_count=2
-edge_flavor_name="ssc.medium"
-edge_count=1
-# Please check that the Kubernetes version is RKE 0.2.x compliant)
-kubernetes_version="v1.14.6-rancher1-1"
+And then confgiure that installation according to the underlying repos
+documentation.
 
-# Security groups
-allowed_ingress_tcp={
-  # These are the ports you need to work with kubernetes and rancher from your
-  # machine.
-  #"<YOUR CIDR>" = [22, 6443, 80, 443, 10250]
-}
-allowed_ingress_udp={}
-secgroups = []
-```
-
-If you want the state to be stored into a S3 remote backend you can add the following configuration to the `backend.cfg` file:
+To use a custom deployment repository use the `-r`/`--repository` option to
+the init command (possibly in conjunction with the `-b`/`--branch` option).
 
 ```
-access_key = "xyz"
-secret_key = "xyz"
-bucket = "bucketname"
-region = "us-east-1"
-endpoint = "https://s3.endpoint"
-key = "terraform.tfstate"
-skip_requesting_account_id = true
-skip_credentials_validation = true
-skip_get_ec2_platforms = true
-skip_metadata_api_check = true
-skip_region_validation = true
+rega init --repository https://github.com/someorg/somerepo.git --branch stable <my-project>
+cd <my-project>
 ```
 
-And for Swift:
+
+## Quick start
+
+### Firing up the infrastructure
+
+To spawn the infrastructure execute the `apply` command.
 
 ```
-container          = "cluster-state"
-archive_container  = "cluster-state-archive"
-```
-
-## Firing up the infrastructure
-
-To spawn the infrastructure execute the `apply` command with the desired modules. By default all modules will be created and we do not initialise Terraform to support a remote backend. With `--backend`it is possible to change the type of backend to use. The `--config` flag can be used to specify a custom file path for the backend configuration.
-
-```
-rega apply --modules=[infra,all] --backend=[local,s3,swift] [--config=<backend config file>]
+rega apply
 ```
 
 Once the deployment is done, you may explore the cluster:
@@ -103,15 +66,7 @@ rega kubectl get nodes -o wide
 ```
 
 
-## Provisioning with Ansible
-
-You can run Ansible playbooks against the virtual machines by running the `provision` command. It expects the path of the playbook under the `playbooks` folder. For example:
-
-```
-rega provision setup.yml
-```
-
-## Releasing resources
+### Releasing resources
 
 You can release the resources by running `destroy`:
 
@@ -119,7 +74,8 @@ You can release the resources by running `destroy`:
 rega destroy
 ```
 
-## Starting Tiller
+
+### Starting Tiller
 
 Prior to installing Helm charts, you need to have Tiller up and running in your cluster:
 
@@ -127,7 +83,8 @@ Prior to installing Helm charts, you need to have Tiller up and running in your 
 rega helm init --service-account terraform-tiller
 ```
 
-## Rancher Server
+
+### Rancher Server
 
 In order to manage the cluster from the Rancher UI, you can install `cert-manager` and the `Rancher server` using a Helm chart. After initialising Helm, you need to add the Helm chart repository that contains charts to install Rancher:
 
@@ -152,3 +109,80 @@ rega helm install rancher-stable/rancher \
 
 You can then visit the dashboard in the following address:
 ```https://ega.dash.<edge-ip>.nip.io```
+
+
+## Detailed description
+
+The rega tool looks for scripts in the scripts/ subdirectory of the template
+repo that is instlled. These scripts have to follow the following naming
+scheme in order for rega to find them and use them correctly (all other
+shellscripts are ignored):
+
+```
+./scripts/<stage>_<type>_<name>.sh
+```
+
+Where `stage` is a number, `type` is any of `init`, `plan`, `apply`, and
+`destroy` and `name` is a descriptive name of the script.
+
+The rega tool then runs those scripts in the order specified by the `stage`
+number when the commands `init`, `plan`, `apply` and `destroy` is used. The
+expected behavior of scripts in the different stages are as follows:
+
+### Stages
+
+The stage specification is for specifying the order in which the modules
+should run but also to group actions that belong together. For example with a
+terraform stage you might have scripts to plan, apply and destroy that part of
+the infrastructure and by naming them all with the same number. For example:
+
+```
+./scripts/03_plan_network.sh
+./scripts/03_apply_network.sh
+./scripts/03_destroy_network.sh
+```
+
+### Types
+
+#### init
+
+Run last in the `rega init` phase. This is where different initialisations can
+take place. The most common here would be to download terraform modules into
+the `./terraform_modules` directory for example.
+
+Stages are run in order.
+
+#### plan
+
+Runs when the user enters `rega plan`. This is roughly equivalent to the
+`terraform plan` command, so most of these will just execute a `terraform
+plan` command or equivalent in whatever provisioner is used.
+
+Stages are run in order.
+
+#### apply
+
+Runs when the user enters `rega apply`. This is for making changes to the
+infrastructure. Recommended things to run in these stages are `terraform
+apply` and `ansible-playbook` for example
+
+Stages are run in order.
+
+#### destroy
+
+Runs when the user enters `rega apply`. This should destroy the
+infrastructure.
+
+Stages are run in **reverse** order
+
+### Run only a specific part of the available stages
+
+It's possible to specify what stage to run to plan, apply and destroy by
+adding the name of the module you want to run to the command line. For example the command:
+
+```
+rega apply network
+```
+
+would run all files that match the file pattern
+`./scripts/[0-9]+_apply_network.sh` _in order_.
