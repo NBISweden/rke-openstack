@@ -222,7 +222,7 @@ def run_in_container(commands):
 def run_scripts(type, selection=None):
     scripts = TemplateScripts()
     for script in scripts.get_type(type):
-        if len(selection) > 0 and script['name'] not in selection:
+        if selection and script['name'] not in selection:
             continue
         run_in_container([script['path']])
 
