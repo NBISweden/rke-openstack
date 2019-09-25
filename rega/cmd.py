@@ -234,7 +234,7 @@ def run_init_scripts(directory):
 
 def clone_deployment_templates(repository, branch, directory):
     """Clone deployment template repo into new directory"""
-    run_in_container([f'git clone --branch={branch} {repository} {directory}'], do_check_version=False)
+    run_in_container([f'git clone --branch={branch} {repository} {directory}'])
 
 
 def generate_ssh_keys(directory):
