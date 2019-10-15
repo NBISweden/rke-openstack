@@ -111,15 +111,14 @@ def plan(modules):
 
 
 @main.command('apply')
-@click.argument('module', nargs=-1)
+@click.argument('modules', nargs=-1)
 def apply(modules):
     """Apply the Terraform plan to spawn the desired resources."""
     logging.info("""Applying setup using modules %s""", ", ".join(modules))
-    run_scripts(type='apply', selection=None)
+    run_scripts(type='apply', selection=modules)
 
 
 @main.command('destroy')
-@click.argument('module', nargs=-1)
 def destroy():
     """Releases the previously requested resources."""
     logging.info("""Destroying the infrastructure...""")
