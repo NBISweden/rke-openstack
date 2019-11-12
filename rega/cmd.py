@@ -3,7 +3,7 @@ import os
 import logging
 from glob import glob
 import re
-
+import subprocess
 import click
 import docker
 import pkg_resources
@@ -233,8 +233,7 @@ def run_init_scripts(directory):
 
 def clone_deployment_templates(repository, branch, directory):
     """Clone deployment template repo into new directory"""
-    run_in_container([f'git clone --branch={branch} {repository} {directory}'])
-
+    subprocess.run(f'git clone --branch={branch} {repository} {directory}'.split(' '))
 
 def generate_ssh_keys(directory):
     """Create ssh keys for deployment"""
