@@ -185,13 +185,15 @@ def run_in_container(commands):
     download_image(client)
     env = list(filter_vars(os.environ))
 
-    # mount_directory = Path( system(git rev-parse --show-toplevel) )
-    current_dir = Path(os.getcwd())
-    container_base = Path('/mnt/deployment')
-    container_wd = container_base / current_dir.relative_to( mount_directory )
+    top_level_dir = subprocess.run(f'git rev-parse --show-toplevel'.split(' '),
+                                   capture_output=True,
+                                   encoding='utf-8').stdout
 
-    # You _might_ need to stringify mount_directory and container_wd below
-    volume_mount = {mount_directory: {'bind': '/mnt/deployment/', 'mode': 'rw'}}
+    mount_directory = top_level_dir.strip('\n')
+    current_dir = Path(os.getcwd())
+    container_base = '/mnt/deployment'
+    container_wd = str(Path(container_base) / current_dir.relative_to(Path(mount_directory)))
+    volume_mount = {mount_directory: {'bind': container_base, 'mode': 'rw'}}
 
     assert isinstance(commands, list)
 
