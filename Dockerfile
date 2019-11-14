@@ -1,35 +1,26 @@
-FROM ubuntu:bionic-20190204
+FROM alpine:3.9
 
-# Terraform and Openstack client versions
-ENV TERRAFORM_VERSION=0.12.7
+ENV TERRAFORM_VERSION=0.12.13
 ENV ANSIBLE_VERSION=2.8.1
 ENV OPENSTACKCLIENT_VERSION=3.17.0
 ENV HELM_VERSION=2.14.3
 ENV KUBERNETES_VERSION=v1.15.3
 
-# PIP version
-ENV PIP=9.0.3
+ENV PIP=19.3.1
 
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 
 # Install dependencies
-RUN apt update -y && \
-      DEBIAN_FRONTEND=noninteractive apt install -y \
-      apt-transport-https \
-      curl \
-      git \
-      jq \
-      openssl \
-      python-pip \
-      unzip && \
-    pip install --no-cache-dir --upgrade pip=="${PIP}" && \
+
+RUN apk --update add python3 py-pip curl openssl ca-certificates && \
+    apk --update add --virtual build-dependencies \
+                python-dev libffi-dev openssl-dev build-base  && \
+    pip install --upgrade pip cffi && \
     pip install --no-cache-dir \
       python-openstackclient=="$OPENSTACKCLIENT_VERSION" \
       ansible=="$ANSIBLE_VERSION" && \
-    rm -rf /usr/lib/gcc && \
-    rm -rf /usr/share/man && \
-    apt clean && \
-    rm -rf /var/lib/apt/lists/*
+    apk del build-dependencies && \
+    rm -rf /var/cache/apk/*
 
 # Install Terraform
 RUN curl "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip" > \
@@ -48,3 +39,8 @@ RUN curl "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" > \
 RUN curl "https://storage.googleapis.com/kubernetes-release/release/${KUBERNETES_VERSION}/bin/linux/amd64/kubectl" > \
     /usr/local/bin/kubectl && \
     chmod +x /usr/local/bin/kubectl
+
+# Create alias for bash scripts
+ENV ENV="/root/.ashrc"
+RUN echo 'alias bash=ash'\
+    >> "$ENV"
