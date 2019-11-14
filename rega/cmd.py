@@ -200,7 +200,7 @@ def run_in_container(commands):
         volumes=volume_mount,
         environment=env,
         working_dir=container_wd,
-        entrypoint=['bash', '-c'],
+        entrypoint=['ash', '-c'],
         command=f'"{commands_as_string}"',
         detach=True
     )
