@@ -39,3 +39,8 @@ RUN curl "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" > \
 RUN curl "https://storage.googleapis.com/kubernetes-release/release/${KUBERNETES_VERSION}/bin/linux/amd64/kubectl" > \
     /usr/local/bin/kubectl && \
     chmod +x /usr/local/bin/kubectl
+
+# Create alias for bash scripts
+ENV ENV="/root/.ashrc"
+RUN echo 'alias bash=ash'\
+    >> "$ENV"
