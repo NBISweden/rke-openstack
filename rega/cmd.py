@@ -187,9 +187,9 @@ def run_in_container(commands):
 
     top_level_dir = subprocess.run(f'git rev-parse --show-toplevel'.split(' '),
                                    capture_output=True,
-                                   encoding='utf-8').stdout
+                                   encoding='utf-8')
 
-    mount_directory = top_level_dir.strip('\n')
+    mount_directory = top_level_dir.stdout.strip('\n')
     current_dir = Path(os.getcwd())
     container_base = '/mnt/deployment'
     container_wd = str(Path(container_base) / current_dir.relative_to(Path(mount_directory)))
