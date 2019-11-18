@@ -11,6 +11,7 @@ from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from prettytable import PrettyTable
+from pathlib import Path
 
 logging.basicConfig(level=logging.INFO)
 PACKAGE_VERSION = pkg_resources.get_distribution("rega").version
@@ -183,8 +184,16 @@ def run_in_container(commands):
     client = docker.from_env()
     download_image(client)
     env = list(filter_vars(os.environ))
-    volume_mount = {os.getcwd(): {'bind': '/mnt/deployment/', 'mode': 'rw'}}
-    container_wd = '/mnt/deployment/'
+
+    top_level_dir = subprocess.run(f'git rev-parse --show-toplevel'.split(' '),
+                                   capture_output=True,
+                                   encoding='utf-8')
+
+    mount_directory = top_level_dir.stdout.strip('\n')
+    current_dir = Path(os.getcwd())
+    container_base = '/mnt/deployment'
+    container_wd = str(Path(container_base) / current_dir.relative_to(Path(mount_directory)))
+    volume_mount = {mount_directory: {'bind': container_base, 'mode': 'rw'}}
 
     assert isinstance(commands, list)
 
