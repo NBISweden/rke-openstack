@@ -6,6 +6,7 @@ ENV OPENSTACKCLIENT_VERSION=3.17.0
 ENV HELM_VERSION=2.14.3
 ENV KUBERNETES_VERSION=v1.15.3
 ENV PYYAML_VERSION=5.1.1
+ENV JINJA2_VERSION=2.10.3 
 
 ENV PIP=19.3.1
 
@@ -21,7 +22,8 @@ RUN apk --update add python3 py-pip curl openssl ca-certificates && \
       python-openstackclient=="$OPENSTACKCLIENT_VERSION" \
       ansible=="$ANSIBLE_VERSION" && \
     pip3 install --no-cache-dir \
-      PyYAML=="$PYYAML_VERSION" && \
+      PyYAML=="$PYYAML_VERSION" \
+      jinja2=="$JINJA2_VERSION" && \
     apk del build-dependencies && \
     rm -rf /var/cache/apk/*
 
