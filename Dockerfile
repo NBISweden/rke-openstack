@@ -14,7 +14,7 @@ SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 
 # Install dependencies
 
-RUN apk --update add python3 py-pip curl openssl ca-certificates && \
+RUN apk --update add python3 py-pip openssh-client curl openssl ca-certificates && \
     apk --update add --virtual build-dependencies \
                 python-dev libffi-dev openssl-dev build-base  && \
     pip install --upgrade pip cffi && \
