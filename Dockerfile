@@ -14,7 +14,7 @@ SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 
 # Install dependencies
 
-RUN apk --update add python3 py-pip openssh-client curl openssl ca-certificates && \
+RUN apk --update add python3 py-pip openssh-client bash curl openssl ca-certificates && \
     apk --update add --virtual build-dependencies \
                 python-dev libffi-dev openssl-dev build-base  && \
     pip install --upgrade pip cffi && \
@@ -44,8 +44,3 @@ RUN curl "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" > \
 RUN curl "https://storage.googleapis.com/kubernetes-release/release/${KUBERNETES_VERSION}/bin/linux/amd64/kubectl" > \
     /usr/local/bin/kubectl && \
     chmod +x /usr/local/bin/kubectl
-
-# Create alias for bash scripts
-ENV ENV="/root/.ashrc"
-RUN echo 'alias bash=ash'\
-    >> "$ENV"
