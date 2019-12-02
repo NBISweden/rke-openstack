@@ -145,7 +145,7 @@ def list_types():
 
 
 @main.command('run-type')
-@click.argument('type', nargs=-1)
+@click.argument('type')
 def run_type(type):
     """Run scripts of a certain type"""
     logging.info(f"""Running the {type} scripts""")
