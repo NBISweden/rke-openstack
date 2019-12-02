@@ -30,6 +30,7 @@ class TemplateScripts:
             if m is None:
                 continue
             scripts.append({
+                'full_name': m[0],
                 'stage': int(m[1]),
                 'type': m[2],
                 'name': m[3],
@@ -37,6 +38,10 @@ class TemplateScripts:
             })
         scripts.sort(key=lambda x: x['stage'])
         return scripts
+
+
+    def get_types(self):
+        return set([ _['type'] for _ in self.scripts ] )
 
 
     def get_type(self, type):
@@ -124,6 +129,23 @@ def destroy():
     """Releases the previously requested resources."""
     logging.info("""Destroying the infrastructure...""")
     run_scripts(type='destroy', selection=None)
+
+
+@main.command('list-types')
+def list_types():
+    """List available stage types"""
+    logging.info("""List the available stage types""")
+    scripts = TemplateScripts()
+    for t in scripts.get_types():
+        print(f" {t}")
+
+
+@main.command('run-type')
+@click.argument('type', nargs=-1)
+def run_type(type):
+    """Run scripts of a certain type"""
+    logging.info(f"""Running the {type} scripts""")
+    run_scripts(type)
 
 
 def _fix_extra_args(ctx, param, value):
