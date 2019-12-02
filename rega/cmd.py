@@ -41,7 +41,7 @@ class TemplateScripts:
 
 
     def get_types(self):
-        return set([ _['type'] for _ in self.scripts ] )
+        return set([ _['type'] for _ in self.scripts ])
 
 
     def get_type(self, type):
