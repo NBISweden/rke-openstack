@@ -50,6 +50,10 @@ class TemplateScripts:
                 yield script
 
 
+    def has_type(self, type):
+        return type in [_['type'] for _ in self._scripts]
+
+
     def number_of_stages(self):
         return max( map( lambda x: x['stage'], self._scripts ) )
 
@@ -267,6 +271,10 @@ def run_in_container(commands):
 
 def run_scripts(type, selection=None):
     scripts = TemplateScripts()
+    if not scripts.has_type(type):
+        logging.error(f"No scripts of type {type}")
+        sys.exit(1)
+
     for script in scripts.get_type(type):
         if selection and script['name'] not in selection:
             continue
