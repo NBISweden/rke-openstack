@@ -148,6 +148,22 @@ def run_type(type):
     run_scripts(type)
 
 
+@main.command('run-script')
+@click.argument('script')
+def run_script(script):
+    """Run a specific script"""
+    logging.info(f"""Running the {script} script""")
+    if not Path(script).is_file():
+        # Check if it's just in the scripts directory
+        guess = f"scripts/{script}"
+        if not Path(guess).is_file():
+            logging.error(f"Can't find script {script}")
+            sys.exit(1)
+        script = guess
+
+    run_in_container(script)
+
+
 def _fix_extra_args(ctx, param, value):
     """Use together with click.argument to convert tuple to string."""
     return " ".join(value)
