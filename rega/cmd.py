@@ -55,7 +55,7 @@ class TemplateScripts:
 
 
     def number_of_stages(self):
-        return max( map( lambda x: x['stage'], self._scripts ) )
+        return max( [_['stage'] for _ in self._scripts] )
 
 
     def get_stage(self, n):
