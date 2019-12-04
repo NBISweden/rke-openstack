@@ -170,7 +170,7 @@ Stages are run in order.
 
 #### destroy
 
-Runs when the user enters `rega apply`. This should destroy the
+Runs when the user enters `rega destroy`. This should destroy the
 infrastructure.
 
 Stages are run in **reverse** order
