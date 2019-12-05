@@ -72,7 +72,7 @@ def main(image):
     """REGA is a tool for provisioning RKE clusters."""
     # Dont check environment in case we are in init
     context = click.get_current_context()
-    if context.invoked_subcommand != 'init':
+    if context.invoked_subcommand in ['plan', 'apply', 'destroy', 'run-type', 'list-types']:
         check_version(PACKAGE_VERSION)
         check_environment()
 
@@ -225,8 +225,8 @@ def run_in_container(commands):
 
     logging.debug(f"Run in container: -> setting up environment")
     if os.path.isfile('./kube_config_cluster.yml'):
-        env.append('KUBECONFIG=/mnt/deployment/kube_config_cluster.yml')
-    env.append('HELM_HOME=/mnt/deployment/.helm')
+        env.append(f'KUBECONFIG={container_wd}/kube_config_cluster.yml')
+    env.append(f'HELM_HOME={container_wd}/.helm')
 
     commands_as_string = " && ".join(commands)
     logging.debug(f"Run in container: -> Starting the command")
