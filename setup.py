@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='rega',
-    version='1.9.7',
+    version='1.9.8',
     packages=['rega'],
     description='REGA CLI for provisioning RKE clusters',
     author='Jon Ander Novella and Johan Viklund',
