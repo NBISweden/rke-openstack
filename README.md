@@ -1,6 +1,6 @@
 # RKE deployment on Openstack using Terraform
 
-This CLI allows you to install vanilla Kubernetes in a cluster of machines created with Terraform on Openstack. It also provides automatic provisioning of `Cinder volumes` to Kubernetes pods, `nginx` as LoadBalancer and the possibility to setup the `Rancher Server UI` to manage the cluster.
+This CLI allows you to install a Rancher Kubernetes Engine cluster of machines created with Terraform on Openstack. It provides automatic provisioning of `Cinder volumes` to Kubernetes pods and `nginx` as LoadBalancer.
 
 ## Prerequisites
 On your machine you need the following requirements:
@@ -18,6 +18,7 @@ You need `python3` installed. I recommend that you use `virtualenv` for installa
 
 In order to install the CLI please run:
 ```
+pip install -r requirements.txt
 pip install .
 ```
 You can now explore the different functions provided by the CLI by executing:
@@ -73,42 +74,6 @@ You can release the resources by running `destroy`:
 ```
 rega destroy
 ```
-
-
-### Starting Tiller
-
-Prior to installing Helm charts, you need to have Tiller up and running in your cluster:
-
-```
-rega helm init --service-account terraform-tiller
-```
-
-
-### Rancher Server
-
-In order to manage the cluster from the Rancher UI, you can install `cert-manager` and the `Rancher server` using a Helm chart. After initialising Helm, you need to add the Helm chart repository that contains charts to install Rancher:
-
-```
-rega helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
-```
-
-Rancher relies on cert-manager version v0.5.2 from the official charts repository. To install it use:
-```
-rega helm install stable/cert-manager \
-  --name cert-manager \
-  --namespace kube-system \
-  --version v0.5.2
-```
-And initialise the Rancher server by:
-```
-rega helm install rancher-stable/rancher \
-  --name rancher \
-  --namespace cattle-system \
-  --set hostname=ega.dash.<edge-ip>.nip.io
-```
-
-You can then visit the dashboard in the following address:
-```https://ega.dash.<edge-ip>.nip.io```
 
 
 ## Detailed description
@@ -186,3 +151,28 @@ rega apply network
 
 would run all files that match the file pattern
 `./scripts/[0-9]+_apply_network.sh` _in order_.
+
+### Rancher Server
+
+In order to manage the cluster from the Rancher UI, you can install `cert-manager` and the `Rancher server` using a Helm chart. After initialising Helm, you need to add the Helm chart repository that contains charts to install Rancher:
+
+```
+rega helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
+```
+
+Rancher relies on cert-manager version v0.5.2 from the official charts repository. To install it use:
+```
+rega helm install cert-manager stable/cert-manager \
+  --namespace kube-system \
+  --version v0.5.2
+```
+And initialise the Rancher server by:
+```
+rega helm install rancher rancher-stable/rancher \
+  --namespace cattle-system \
+  --set hostname=ega.dash.<edge-ip>.nip.io
+```
+
+You can then visit the dashboard in the following address:
+```https://ega.dash.<edge-ip>.nip.io```
+
