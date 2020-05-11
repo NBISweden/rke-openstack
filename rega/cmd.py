@@ -212,7 +212,7 @@ def run_in_container(commands):
     env = list(filter_vars(os.environ))
 
     top_level_dir = subprocess.run(f'git rev-parse --show-toplevel'.split(' '),
-                                   capture_output=True,
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    encoding='utf-8')
 
     mount_directory = top_level_dir.stdout.strip('\n')
