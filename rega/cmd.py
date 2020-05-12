@@ -259,10 +259,15 @@ def run_scripts(type, selection=None):
         logging.error(f"No scripts of type {type}")
         sys.exit(1)
 
+    status_code = 0
+
     for script in scripts.get_type(type):
         if selection and script['name'] not in selection:
             continue
-        run_in_container([script['path']])
+        if status_code != 0:
+            logging.error("Execution halted due to a non-zero exit code")
+            exit(1)
+        status_code = run_in_container([script['path']])
 
 
 def run_init_scripts(directory):
